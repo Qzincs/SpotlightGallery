@@ -1,0 +1,10 @@
+{
+  "profiles": {
+    "SpotlightGallery (Package)": {
+      "commandName": "MsixPackage"
+    },
+    "SpotlightGallery (Unpackaged)": {
+      "commandName": "Project"
+    }
+  }
+}
