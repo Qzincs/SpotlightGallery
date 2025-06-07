@@ -1,9 +1,11 @@
-﻿using Newtonsoft.Json;
+﻿using Microsoft.Win32;
+using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Net.Http;
+using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -33,6 +35,13 @@ namespace SpotlightGallery.Services
         /// </summary>
         /// <returns>壁纸的路径</returns>
         Task<Wallpaper> DownloadWallpaperAsync();
+
+        /// <summary>
+        /// 设置系统壁纸
+        /// </summary>
+        /// <param name="wallpaperPath">壁纸文件路径</param>
+        /// <returns>是否设置成功</returns>
+        bool SetWallpaper(string wallpaperPath);
     }
 
     class WallpaperService : IWallpaperService
@@ -125,5 +134,35 @@ namespace SpotlightGallery.Services
             return wallpaper;
         }
 
+        public bool SetWallpaper(string wallpaperPath)
+        {
+            if (!File.Exists(wallpaperPath))
+            {
+                System.Diagnostics.Debug.WriteLine($"壁纸文件不存在: {wallpaperPath}");
+                return false;
+            }
+
+            // 打开注册表项 HKEY_CURRENT_USER\Control Panel\Desktop
+            RegistryKey key = Registry.CurrentUser.OpenSubKey(@"Control Panel\Desktop", true);
+
+            // 将 WallpaperStyle 和 TileWallpaper 的值分别设为 10 和 0
+            // WallpaperStyle 设为 10 表示桌面壁纸不平铺，而是按比例拉伸
+            // TileWallpaper 设为 0 表示不平铺壁纸
+            key.SetValue("WallpaperStyle", "10");
+            key.SetValue("TileWallpaper", "0");
+
+            const int SPI_SETDESKWALLPAPER = 0x0014;  // 设置壁纸
+            const int SPIF_UPDATEINIFILE = 0x01;      // 更新用户配置文件
+            const int SPIF_SENDCHANGE = 0x02;         // 广播设置变更消息
+
+            // 调用 SystemParametersInfo 函数设置桌面壁纸
+            // wallpaperPath 表示壁纸的路径
+            bool result = SystemParametersInfo(SPI_SETDESKWALLPAPER, 0, wallpaperPath, SPIF_UPDATEINIFILE | SPIF_SENDCHANGE);
+
+            return result;
+        }
+
+        [DllImport("user32.dll", SetLastError = true, CharSet = CharSet.Unicode)]
+        private static extern bool SystemParametersInfo(int uAction, int uParam, string lpvParam, int fuWinIni);
     }
 }

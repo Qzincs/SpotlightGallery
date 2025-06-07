@@ -6,7 +6,8 @@
     xmlns:local="using:SpotlightGallery.Pages"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-    mc:Ignorable="d">
+    mc:Ignorable="d"
+    NavigationCacheMode="Enabled">
 
     <Grid Margin="16">
         <Grid.RowDefinitions>
@@ -23,18 +24,18 @@
             <Grid>
                 <Viewbox Stretch="Uniform">
                     <Grid Width="16"
-                            Height="9">
+                          Height="9">
                         <Image
                             x:Name="WallpaperImage"
                             Source="{x:Bind ViewModel.WallpaperImage, Mode=OneWay}"
                             Stretch="UniformToFill"/>
+
+                        <Rectangle
+                            Fill="{ThemeResource SystemControlBackgroundBaseMediumBrush}"
+                            Opacity="0.5"
+                            Visibility="{x:Bind ViewModel.IsLoading, Mode=OneWay}"/>
                     </Grid>
                 </Viewbox>
-
-                <Rectangle
-                    Fill="{ThemeResource SystemControlBackgroundBaseMediumBrush}"
-                    Opacity="0.7"
-                    Visibility="{x:Bind ViewModel.IsLoading, Mode=OneWay}"/>
 
                 <!-- 加载圈 -->
                 <ProgressRing
@@ -42,21 +43,40 @@
                     Width="50"
                     Height="50"
                     Visibility="{x:Bind ViewModel.IsLoading, Mode=OneWay}"/>
+
+                <!-- 悬浮在壁纸上方的InfoBar -->
+                <Grid VerticalAlignment="Top"
+                        HorizontalAlignment="Center"
+                        Margin="0,0,0,0"
+                        MinHeight="80">
+                    <InfoBar
+                        x:Name="StatusInfoBar"
+                        IsOpen="{x:Bind ViewModel.IsInfoBarVisible, Mode=OneWay}"
+                        Severity="{x:Bind ViewModel.InfoBarSeverity, Mode=OneWay}" >
+                        <!--用文本框方便复制报错信息-->
+                        <TextBlock
+                                Text="{x:Bind ViewModel.InfoBarMessage, Mode=OneWay}" 
+                                TextWrapping="Wrap"
+                                IsTextSelectionEnabled="True" />
+                    </InfoBar>
+                </Grid>
+                
             </Grid>
         </Border>
 
         <!-- 底部信息展示区域 -->
         <Grid Grid.Row="1"
-                Margin="4,0">
+              Margin="4,0">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="Auto"/>
                 <ColumnDefinition Width="Auto"/>
                 <ColumnDefinition Width="Auto"/>
             </Grid.ColumnDefinitions>
 
             <!-- 左侧文字信息 -->
             <StackPanel Grid.Column="0"
-                    VerticalAlignment="Center">
+                        VerticalAlignment="Center">
                 <TextBlock
                     x:Name="WallpaperTitle"
                     Text="{x:Bind ViewModel.WallpaperTitle, Mode=OneWay}"
@@ -82,16 +102,21 @@
             <!-- 右侧按钮 -->
             <Button
                 Grid.Column="1"
+                x:Name="FavoriteButton">
+                <FontIcon Glyph="&#xE734;"/>
+            </Button>
+            <Button
+                Grid.Column="2"
                 x:Name="NextImageButton"
                 x:Uid="NextImageButton"
-                Command="{x:Bind ViewModel.NextImageCommand}"
-                IsEnabled="{x:Bind ViewModel.IsLoading, Mode=OneWay, Converter={StaticResource InverseBooleanConverter}}"
+                Command="{x:Bind ViewModel.NextWallpaperCommand}"
                 VerticalAlignment="Center"
                 Margin="16,0,0,0"/>
             <Button
-                Grid.Column="2"
+                Grid.Column="3"
                 x:Name="ApplyButton"
                 x:Uid="ApplyButton"
+                Command="{x:Bind ViewModel.ApplyWallpaperCommand}"
                 Style="{ThemeResource AccentButtonStyle}"
                 VerticalAlignment="Center"
                 Margin="16,0,0,0"/>
