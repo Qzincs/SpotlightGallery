@@ -33,7 +33,6 @@
         </Grid.RowDefinitions>
         <TextBlock
             x:Name="PageHeader"
-            MaxWidth="1064"
             Margin="36,24,36,0"
             Style="{StaticResource TitleTextBlockStyle}"
             Text="Settings" />
