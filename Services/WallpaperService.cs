@@ -42,6 +42,12 @@ namespace SpotlightGallery.Services
         /// <param name="wallpaperPath">壁纸文件路径</param>
         /// <returns>是否设置成功</returns>
         bool SetWallpaper(string wallpaperPath);
+
+        /// <summary>
+        /// 获取当前系统壁纸
+        /// </summary>
+        /// <returns>当前壁纸</returns>
+        Wallpaper GetCurrentWallpaper();
     }
 
     class WallpaperService : IWallpaperService
@@ -134,6 +140,17 @@ namespace SpotlightGallery.Services
             return wallpaper;
         }
 
+        // 获取当前壁纸的路径
+        public Wallpaper GetCurrentWallpaper()
+        {
+            IDesktopWallpaper desktopWallpaper = (IDesktopWallpaper)new DesktopWallpaperClass();
+            string wallpaperPath = "";
+
+            desktopWallpaper.GetWallpaper(null, out wallpaperPath);
+
+            return new Wallpaper("", "", "", wallpaperPath);
+        }
+
         public bool SetWallpaper(string wallpaperPath)
         {
             if (!File.Exists(wallpaperPath))
@@ -142,27 +159,29 @@ namespace SpotlightGallery.Services
                 return false;
             }
 
-            // 打开注册表项 HKEY_CURRENT_USER\Control Panel\Desktop
-            RegistryKey key = Registry.CurrentUser.OpenSubKey(@"Control Panel\Desktop", true);
+            IDesktopWallpaper desktopWallpaper = (IDesktopWallpaper)new DesktopWallpaperClass();
+            // 设置壁纸，NULL代表全部显示器
+            desktopWallpaper.SetWallpaper(null, wallpaperPath);
 
-            // 将 WallpaperStyle 和 TileWallpaper 的值分别设为 10 和 0
-            // WallpaperStyle 设为 10 表示桌面壁纸不平铺，而是按比例拉伸
-            // TileWallpaper 设为 0 表示不平铺壁纸
-            key.SetValue("WallpaperStyle", "10");
-            key.SetValue("TileWallpaper", "0");
-
-            const int SPI_SETDESKWALLPAPER = 0x0014;  // 设置壁纸
-            const int SPIF_UPDATEINIFILE = 0x01;      // 更新用户配置文件
-            const int SPIF_SENDCHANGE = 0x02;         // 广播设置变更消息
-
-            // 调用 SystemParametersInfo 函数设置桌面壁纸
-            // wallpaperPath 表示壁纸的路径
-            bool result = SystemParametersInfo(SPI_SETDESKWALLPAPER, 0, wallpaperPath, SPIF_UPDATEINIFILE | SPIF_SENDCHANGE);
-
-            return result;
+            return true;
         }
 
-        [DllImport("user32.dll", SetLastError = true, CharSet = CharSet.Unicode)]
-        private static extern bool SystemParametersInfo(int uAction, int uParam, string lpvParam, int fuWinIni);
+        [ComImport]
+        [Guid("B92B56A9-8B55-4E14-9A89-0199BBB6F93B")]
+        [InterfaceType(ComInterfaceType.InterfaceIsIUnknown)]
+        private interface IDesktopWallpaper
+        {
+            // 设置壁纸
+            int SetWallpaper([MarshalAs(UnmanagedType.LPWStr)] string monitorID, [MarshalAs(UnmanagedType.LPWStr)] string wallpaper);
+
+            // 获取壁纸
+            int GetWallpaper([MarshalAs(UnmanagedType.LPWStr)] string monitorID, [MarshalAs(UnmanagedType.LPWStr)] out string wallpaper);
+        }
+
+        [ComImport]
+        [Guid("C2CF3110-460E-4fc1-B9D0-8A1C0C9CC4BD")]
+        private class DesktopWallpaperClass
+        {
+        }
     }
 }

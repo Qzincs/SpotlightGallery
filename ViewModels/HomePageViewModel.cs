@@ -109,6 +109,8 @@ namespace SpotlightGallery.ViewModels
             this.wallpaperService = wallpaperService ?? throw new ArgumentNullException(nameof(wallpaperService));
             NextWallpaperCommand = new RelayCommand(async () => await LoadNextWallpaperAsync(), () => !IsLoading);
             ApplyWallpaperCommand = new RelayCommand(ApplyWallpaper, () => !IsLoading && wallpaper != null && !string.IsNullOrEmpty(wallpaper.path));
+
+            Wallpaper = wallpaperService.GetCurrentWallpaper();
         }
 
         /// <summary>
