@@ -24,8 +24,8 @@ namespace SpotlightGallery
         private const int DefaultWindowWidth = 1030;
         private const int DefaultWindowHeight = 800;
         // 窗口的最小宽高
-        private const int MinWindowWidth = 514;
-        private  int MinWindowHeight = 520;
+        private const int MinWindowWidth = 834;
+        private const int MinWindowHeight = 700;
 
         public static Window StartupWindow
         {
