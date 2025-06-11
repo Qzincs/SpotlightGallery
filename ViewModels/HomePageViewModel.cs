@@ -11,6 +11,9 @@ using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Input;
+using Windows.Storage;
+using Windows.Storage.Pickers;
+using Windows.Storage.Provider;
 
 namespace SpotlightGallery.ViewModels
 {
@@ -102,12 +105,14 @@ namespace SpotlightGallery.ViewModels
 
         public ICommand NextWallpaperCommand { get; }
         public ICommand ApplyWallpaperCommand { get; }
+        public ICommand SaveWallpaperCommand { get; }
 
         public HomePageViewModel(IWallpaperService wallpaperService)
         {
             this.wallpaperService = wallpaperService ?? throw new ArgumentNullException(nameof(wallpaperService));
             NextWallpaperCommand = new RelayCommand(async () => await LoadNextWallpaperAsync(), () => !IsLoading);
-            ApplyWallpaperCommand = new RelayCommand(ApplyWallpaper, () => !IsLoading && wallpaper != null && !string.IsNullOrEmpty(wallpaper.path));
+            ApplyWallpaperCommand = new RelayCommand(ApplyWallpaperAsync, () => !IsLoading && wallpaper != null && !string.IsNullOrEmpty(wallpaper.path));
+            SaveWallpaperCommand = new RelayCommand(SaveWallpaperAsync, () => !IsLoading && wallpaper != null && !string.IsNullOrEmpty(wallpaper.path));
 
             Wallpaper = wallpaperService.GetCurrentWallpaper();
         }
@@ -115,7 +120,6 @@ namespace SpotlightGallery.ViewModels
         /// <summary>
         /// 加载下一张壁纸
         /// </summary>
-        /// <returns></returns>
         public async Task LoadNextWallpaperAsync()
         {
             if (IsLoading) return;
@@ -158,10 +162,11 @@ namespace SpotlightGallery.ViewModels
         /// <summary>
         /// 设置壁纸
         /// </summary>
-        /// <param name="wallpaper"></param>
-        public void ApplyWallpaper()
+        public async void ApplyWallpaperAsync()
         {
-            if (wallpaperService.SetWallpaper(wallpaper.path))
+            bool result = await wallpaperService.SetWallpaperAsync(wallpaper.path);
+
+            if (result)
             {
                 ShowInfoBar("壁纸设置成功", InfoBarSeverity.Success);
                 System.Diagnostics.Debug.WriteLine("壁纸设置成功");
@@ -170,6 +175,45 @@ namespace SpotlightGallery.ViewModels
             {
                 ShowInfoBar("壁纸设置失败", InfoBarSeverity.Error);
                 System.Diagnostics.Debug.WriteLine("壁纸设置失败");
+            }
+        }
+
+        public async void SaveWallpaperAsync()
+        {
+            StorageFile sourceFile = await StorageFile.GetFileFromPathAsync(wallpaper.path);
+
+
+            // 创建文件保存对话框
+            var savePicker = new FileSavePicker();
+
+            var window = App.StartupWindow;
+            var hwnd = WinRT.Interop.WindowNative.GetWindowHandle(window);
+            WinRT.Interop.InitializeWithWindow.Initialize(savePicker, hwnd);
+
+            savePicker.SuggestedStartLocation = PickerLocationId.PicturesLibrary;
+            savePicker.FileTypeChoices.Add("JPEG 图片", new List<string>() { ".jpg" });
+            savePicker.SuggestedFileName = $"{WallpaperTitle}";
+
+            StorageFile destinationFile = await savePicker.PickSaveFileAsync();
+
+            if (destinationFile != null)
+            {
+                CachedFileManager.DeferUpdates(destinationFile);
+
+                // 复制文件
+                await sourceFile.CopyAndReplaceAsync(destinationFile);
+
+                // 完成更新
+                FileUpdateStatus status = await CachedFileManager.CompleteUpdatesAsync(destinationFile);
+
+                if (status == FileUpdateStatus.Complete)
+                {
+                    ShowInfoBar("壁纸已成功保存", InfoBarSeverity.Success);
+                }
+                else
+                {
+                    ShowInfoBar("保存壁纸时出错", InfoBarSeverity.Error);
+                }
             }
         }
 

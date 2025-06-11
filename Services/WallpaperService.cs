@@ -8,6 +8,8 @@ using System.Net.Http;
 using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading.Tasks;
+using Windows.Storage;
+using Windows.System.UserProfile;
 
 namespace SpotlightGallery.Services
 {
@@ -41,7 +43,7 @@ namespace SpotlightGallery.Services
         /// </summary>
         /// <param name="wallpaperPath">壁纸文件路径</param>
         /// <returns>是否设置成功</returns>
-        bool SetWallpaper(string wallpaperPath);
+        Task<bool> SetWallpaperAsync(string wallpaperPath);
 
         /// <summary>
         /// 获取当前系统壁纸
@@ -52,9 +54,7 @@ namespace SpotlightGallery.Services
 
     class WallpaperService : IWallpaperService
     {
-        // TODO 壁纸保存路径可以由用户配置
-        private readonly string wallpaperDirectory = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.MyPictures), "SpotlightGallery");
-        private readonly string dataDirectory = Windows.Storage.ApplicationData.Current.LocalFolder.Path;
+        private readonly string dataDirectory = ApplicationData.Current.LocalFolder.Path;
 
         private List<Wallpaper> wallpapers = new List<Wallpaper>();
 
@@ -118,7 +118,7 @@ namespace SpotlightGallery.Services
             wallpaper = wallpapers[0];
             wallpapers.RemoveAt(0);
 
-            string wallpaperPath = Path.Combine(wallpaperDirectory, $"{wallpaper.title}.jpg");
+            string wallpaperPath = Path.Combine(dataDirectory, $"{wallpaper.title}.jpg");
 
             if (File.Exists(wallpaperPath))
             {
@@ -131,9 +131,9 @@ namespace SpotlightGallery.Services
                 HttpResponseMessage imageResponse = await httpClient.GetAsync(wallpaper.url);
                 byte[] imageData = await imageResponse.Content.ReadAsByteArrayAsync();
 
-                if (!File.Exists(wallpaperDirectory))
+                if (!File.Exists(dataDirectory))
                 {
-                    Directory.CreateDirectory(wallpaperDirectory);
+                    Directory.CreateDirectory(dataDirectory);
                 }
 
                 // 将壁纸保存到本地
@@ -150,15 +150,34 @@ namespace SpotlightGallery.Services
         // 获取当前壁纸的路径
         public Wallpaper GetCurrentWallpaper()
         {
-            IDesktopWallpaper desktopWallpaper = (IDesktopWallpaper)new DesktopWallpaperClass();
-            string wallpaperPath = "";
+            try
+            {
+                RegistryKey key = Registry.CurrentUser.OpenSubKey(@"Control Panel\Desktop", false);
 
-            desktopWallpaper.GetWallpaper(null, out wallpaperPath);
+                if (key == null)
+                {
+                    System.Diagnostics.Debug.WriteLine("无法打开桌面设置注册表项");
+                    return new Wallpaper("", "", "", "");
+                }
 
-            return RetrieveWallpaperMetadata(wallpaperPath);
+                string wallpaperPath = key.GetValue("wallpaper") as string;
+
+                if (string.IsNullOrEmpty(wallpaperPath) || !File.Exists(wallpaperPath))
+                {
+                    System.Diagnostics.Debug.WriteLine("当前壁纸路径无效或不存在");
+                    return new Wallpaper("", "", "", "");
+                }
+
+                return RetrieveWallpaperMetadata(wallpaperPath);
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"获取当前壁纸时出错: {ex.Message}");
+                return new Wallpaper("", "", "", "");
+            }
         }
 
-        public bool SetWallpaper(string wallpaperPath)
+        public async Task<bool> SetWallpaperAsync(string wallpaperPath)
         {
             if (!File.Exists(wallpaperPath))
             {
@@ -166,11 +185,17 @@ namespace SpotlightGallery.Services
                 return false;
             }
 
-            IDesktopWallpaper desktopWallpaper = (IDesktopWallpaper)new DesktopWallpaperClass();
-            // 设置壁纸，NULL代表全部显示器
-            desktopWallpaper.SetWallpaper(null, wallpaperPath);
+            if (!UserProfilePersonalizationSettings.IsSupported())
+            {
+                System.Diagnostics.Debug.WriteLine("当前系统不支持设置壁纸。");
+                return false;
+            }
 
-            return true;
+
+            var file = await StorageFile.GetFileFromPathAsync(wallpaperPath);
+            UserProfilePersonalizationSettings profileSettings = UserProfilePersonalizationSettings.Current;
+            bool result = await profileSettings.TrySetWallpaperImageAsync(file);
+            return result;
         }
 
         private void SaveWallpaperMetadata(Wallpaper wallpaper)
@@ -216,24 +241,6 @@ namespace SpotlightGallery.Services
             {
                 path = wallpaperPath
             };
-        }
-
-        [ComImport]
-        [Guid("B92B56A9-8B55-4E14-9A89-0199BBB6F93B")]
-        [InterfaceType(ComInterfaceType.InterfaceIsIUnknown)]
-        private interface IDesktopWallpaper
-        {
-            // 设置壁纸
-            int SetWallpaper([MarshalAs(UnmanagedType.LPWStr)] string monitorID, [MarshalAs(UnmanagedType.LPWStr)] string wallpaper);
-
-            // 获取壁纸
-            int GetWallpaper([MarshalAs(UnmanagedType.LPWStr)] string monitorID, [MarshalAs(UnmanagedType.LPWStr)] out string wallpaper);
-        }
-
-        [ComImport]
-        [Guid("C2CF3110-460E-4fc1-B9D0-8A1C0C9CC4BD")]
-        private class DesktopWallpaperClass
-        {
         }
     }
 }
