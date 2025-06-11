@@ -43,7 +43,6 @@ namespace SpotlightGallery.ViewModels
                     WallpaperTitle = wallpaper.title;
                     WallpaperDescription = wallpaper.description;
                     WallpaperCopyright = wallpaper.copyright;
-                    WallpaperImage = new BitmapImage(new Uri(wallpaper.url));
 
                     if (!string.IsNullOrEmpty(value?.path))
                     {

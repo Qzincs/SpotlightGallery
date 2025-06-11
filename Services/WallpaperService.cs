@@ -54,7 +54,7 @@ namespace SpotlightGallery.Services
     {
         // TODO 壁纸保存路径可以由用户配置
         private readonly string wallpaperDirectory = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.MyPictures), "SpotlightGallery");
-        private readonly string metadataDirectory = Path.Combine(Windows.Storage.ApplicationData.Current.LocalFolder.Path, "WallpaperMetadata");
+        private readonly string dataDirectory = Windows.Storage.ApplicationData.Current.LocalFolder.Path;
 
         private List<Wallpaper> wallpapers = new List<Wallpaper>();
 
@@ -120,6 +120,11 @@ namespace SpotlightGallery.Services
 
             string wallpaperPath = Path.Combine(wallpaperDirectory, $"{wallpaper.title}.jpg");
 
+            if (File.Exists(wallpaperPath))
+            {
+                return RetrieveWallpaperMetadata(wallpaperPath);
+            }
+
             using (var httpClient = new HttpClient())
             {
                 // 下载壁纸图片
@@ -137,6 +142,8 @@ namespace SpotlightGallery.Services
 
             wallpaper.path = wallpaperPath;
 
+            SaveWallpaperMetadata(wallpaper);
+
             return wallpaper;
         }
 
@@ -148,7 +155,7 @@ namespace SpotlightGallery.Services
 
             desktopWallpaper.GetWallpaper(null, out wallpaperPath);
 
-            return new Wallpaper("", "", "", wallpaperPath);
+            return RetrieveWallpaperMetadata(wallpaperPath);
         }
 
         public bool SetWallpaper(string wallpaperPath)
@@ -164,6 +171,51 @@ namespace SpotlightGallery.Services
             desktopWallpaper.SetWallpaper(null, wallpaperPath);
 
             return true;
+        }
+
+        private void SaveWallpaperMetadata(Wallpaper wallpaper)
+        {
+            string metadataPath = Path.Combine(dataDirectory, "metadata.json");
+
+            if (!File.Exists(metadataPath))
+            {
+                File.WriteAllText(metadataPath, "[]");
+            }
+
+            string json = File.ReadAllText(metadataPath);
+            List<Wallpaper> metadata = JsonConvert.DeserializeObject<List<Wallpaper>>(json) ?? new List<Wallpaper>();
+            metadata.Add(wallpaper);
+            string newJson = JsonConvert.SerializeObject(metadata, Formatting.Indented);
+            File.WriteAllText(metadataPath, newJson);
+        }
+
+
+        /// <summary>
+        /// 尝试从本地获取壁纸的元数据
+        /// </summary>
+        /// <param name="wallpaperPath">壁纸文件路径</param>
+        /// <returns>壁纸元数据</returns>
+        private Wallpaper RetrieveWallpaperMetadata(string wallpaperPath)
+        {
+            string metadataPath = Path.Combine(dataDirectory, "metadata.json");
+
+            if (!File.Exists(metadataPath))
+            {
+                return new Wallpaper("", "", "", "")
+                {
+                    path = wallpaperPath
+                };
+            }
+
+            string title = Path.GetFileNameWithoutExtension(wallpaperPath);
+
+            string json = File.ReadAllText(metadataPath);
+            var wallpapers = JsonConvert.DeserializeObject<List<Wallpaper>>(json) ?? new List<Wallpaper>();
+
+            return wallpapers.Find(w => w.title == title) ?? new Wallpaper("", "", "", "")
+            {
+                path = wallpaperPath
+            };
         }
 
         [ComImport]
