@@ -31,7 +31,7 @@
                 <Image
                     Width="18"
                     VerticalAlignment="Center"
-                    Source="ms-appx:///Assets/StoreLogo.png" />
+                    Source="ms-appx:///Assets/AppLogo.png" />
                 <TextBlock
                     x:Name="AppTitle"
                     x:Uid="AppTitle"
