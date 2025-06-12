@@ -5,7 +5,7 @@
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:local="using:SpotlightGallery.Pages"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
-    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     xmlns:toolkit="using:CommunityToolkit.WinUI.Controls"
     mc:Ignorable="d">
     <Page.Resources>
@@ -21,41 +21,166 @@
             BasedOn="{StaticResource BodyStrongTextBlockStyle}"
             TargetType="TextBlock">
             <Style.Setters>
-                <Setter Property="Margin" Value="1,30,0,6" />
+                <Setter Property="Margin"
+                        Value="1,30,0,6"/>
             </Style.Setters>
         </Style>
     </Page.Resources>
 
     <Grid x:Name="RootGrid">
         <Grid.RowDefinitions>
-            <RowDefinition Height="Auto" />
-            <RowDefinition Height="*" />
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
         </Grid.RowDefinitions>
         <TextBlock
-            x:Name="PageHeader"
+            x:Name="SettingsPageHeader"
+            x:Uid="SettingsPageHeader"
             Margin="36,24,36,0"
-            Style="{StaticResource TitleTextBlockStyle}"
-            Text="Settings" />
+            Style="{StaticResource TitleTextBlockStyle}"/>
         <ScrollView
             Grid.Row="1"
-            Padding="36,0,36,0"
+            Padding="36,0,36,24"
             VerticalScrollBarVisibility="Auto"
-            VerticalScrollMode="Auto"
-            >
+            VerticalScrollMode="Auto">
             <Border>
                 <StackPanel Spacing="{StaticResource SettingsCardSpacing}">
-                    <TextBlock Style="{StaticResource SettingsSectionHeaderTextBlockStyle}" Text="Appearance &amp; behavior" />
-                    <toolkit:SettingsCard Description="Select which app theme to display" Header="App theme">
+                    <TextBlock Style="{StaticResource SettingsSectionHeaderTextBlockStyle}"
+                               Text="功能"/>
+                    <toolkit:SettingsCard Header="壁纸来源">
                         <toolkit:SettingsCard.HeaderIcon>
-                            <FontIcon Glyph="&#xE790;" />
+                            <FontIcon Glyph="&#xE8B9;" />
+                        </toolkit:SettingsCard.HeaderIcon>
+                        <ComboBox SelectedIndex="0">
+                            <ComboBoxItem Content="Windows 聚焦"/>
+                            <ComboBoxItem Content="必应"/>
+                        </ComboBox>
+                    </toolkit:SettingsCard>
+                    <toolkit:SettingsCard Header="图像分辨率">
+                        <toolkit:SettingsCard.HeaderIcon>
+                            <FontIcon Glyph="&#xE799;" />
+                        </toolkit:SettingsCard.HeaderIcon>
+                        <ComboBox SelectedIndex="0">
+                            <ComboBoxItem Content="3840×2160"/>
+                            <ComboBoxItem Content="1920×1080"/>
+                        </ComboBox>
+                    </toolkit:SettingsCard>
+                    <toolkit:SettingsExpander Header="自动更新"
+                            Description="定时更新壁纸">
+                        <toolkit:SettingsExpander.HeaderIcon>
+                            <FontIcon Glyph="&#xE895;" />
+                        </toolkit:SettingsExpander.HeaderIcon>
+                        <ToggleSwitch/>
+                        <toolkit:SettingsExpander.Items>
+                            <toolkit:SettingsCard Header="更新模式">
+                                <ComboBox SelectedIndex="0">
+                                    <ComboBoxItem Content="每天"/>
+                                    <ComboBoxItem Content="每12小时"/>
+                                    <ComboBoxItem Content="指定时间"/>
+                                </ComboBox>
+                            </toolkit:SettingsCard>
+                            <toolkit:SettingsCard Header="更新时间"
+                                                  Visibility="Visible">
+                                <TimePicker/>
+                            </toolkit:SettingsCard>
+                        </toolkit:SettingsExpander.Items>
+                    </toolkit:SettingsExpander>
+                    <toolkit:SettingsExpander Header="自动保存"
+                                              Description="自动将壁纸保存至您选择的文件夹">
+                        <toolkit:SettingsExpander.HeaderIcon>
+                            <FontIcon Glyph="&#xE74E;" />
+                        </toolkit:SettingsExpander.HeaderIcon>
+                        <ToggleSwitch/>
+                        <toolkit:SettingsExpander.Items>
+                            <toolkit:SettingsCard Header="C:\User\Pictures\SpotlightGallery">
+                                <Grid>
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="*"/>
+                                        <ColumnDefinition Width="*"/>
+                                    </Grid.ColumnDefinitions>
+                                    <Button Grid.Column="0"
+                                            Margin="0,0,8,0"
+                                            Content="打开文件夹"/>
+                                    <Button Grid.Column="1"
+                                            Content="更改"/>
+                                </Grid>
+                            </toolkit:SettingsCard>
+                            <toolkit:SettingsCard Header="最大存储容量"
+                                                  Description="设置保存壁纸的最大空间，超出后将自动清理">
+                                <ComboBox SelectedIndex="0">
+                                    <ComboBoxItem Content="100MB"/>
+                                    <ComboBoxItem Content="200MB"/>
+                                    <ComboBoxItem Content="500MB"/>
+                                    <ComboBoxItem Content="无限制"/>
+                                </ComboBox>
+                            </toolkit:SettingsCard>
+                        </toolkit:SettingsExpander.Items>
+
+                    </toolkit:SettingsExpander>
+
+                    <TextBlock Style="{StaticResource SettingsSectionHeaderTextBlockStyle}"
+                               Text="外观"/>
+                    <toolkit:SettingsCard Header="应用主题">
+                        <toolkit:SettingsCard.HeaderIcon>
+                            <FontIcon Glyph="&#xE790;"/>
                         </toolkit:SettingsCard.HeaderIcon>
                         <ComboBox
-                            x:Name="themeMode"
-                            AutomationProperties.AutomationId="themeModeComboBox">
-                            <ComboBoxItem Content="Light" Tag="Light" />
-                            <ComboBoxItem Content="Dark" Tag="Dark" />
-                            <ComboBoxItem Content="Use system setting" Tag="Default" />
+                            x:Name="themeMode" SelectedIndex="2">
+                            <ComboBoxItem Content="浅色主题"
+                                          Tag="Light"/>
+                            <ComboBoxItem Content="深色主题"
+                                          Tag="Dark"/>
+                            <ComboBoxItem Content="使用系统设置"
+                                          Tag="Default"/>
                         </ComboBox>
+                    </toolkit:SettingsCard>
+                    <toolkit:SettingsCard Header="显示语言">
+                        <toolkit:SettingsCard.HeaderIcon>
+                            <FontIcon Glyph="&#xE774;"/>
+                        </toolkit:SettingsCard.HeaderIcon>
+                        <ComboBox SelectedIndex="0">
+                            <ComboBoxItem Content="中文"/>
+                            <ComboBoxItem Content="English"/>
+                        </ComboBox>
+                    </toolkit:SettingsCard>
+
+                    <TextBlock Style="{StaticResource SettingsSectionHeaderTextBlockStyle}"
+                               Text="关于"/>
+                    <toolkit:SettingsCard Description="一个简单的壁纸应用，由WinUI3构建"
+                                              Header="Spotlight Gallery">
+                        <toolkit:SettingsCard.HeaderIcon>
+                            <ImageIcon Source="/Assets/AppLogo.png" />
+                        </toolkit:SettingsCard.HeaderIcon>
+                        <TextBlock IsTextSelectionEnabled="True"
+                                   Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                                   Text="0.1.0"/>
+                    </toolkit:SettingsCard>
+                    <toolkit:SettingsCard Header="开放源代码"
+                          Description="这是一个开源项目，欢迎贡献代码和提出建议">
+                        <toolkit:SettingsCard.HeaderIcon>
+                            <ImageIcon Source="ms-appx:///Assets/github.svg" />
+                        </toolkit:SettingsCard.HeaderIcon>
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="*"/>
+                            </Grid.ColumnDefinitions>
+                            <HyperlinkButton Grid.Column="0"
+                             Content="项目主页"
+                             NavigateUri="https://github.com/Qzincs/SpotlightGallery"/>
+                            <HyperlinkButton Grid.Column="1"
+                             Content="许可证"
+                             NavigateUri="https://github.com/Qzincs/SpotlightGallery/blob/main/LICENSE"/>
+                            <HyperlinkButton Grid.Column="2"
+                             Content="反馈"
+                             NavigateUri="https://github.com/Qzincs/SpotlightGallery/issues"/>
+                        </Grid>
+                    </toolkit:SettingsCard>
+                    <toolkit:SettingsCard Header="图像版权声明" 
+                                                  Description="本应用展示的所有图像仅供个人壁纸使用，其版权归原作者或版权所有者所有">
+                        <toolkit:SettingsCard.HeaderIcon>
+                            <FontIcon Glyph="&#xE946;" />
+                        </toolkit:SettingsCard.HeaderIcon>
                     </toolkit:SettingsCard>
                 </StackPanel>
             </Border>
