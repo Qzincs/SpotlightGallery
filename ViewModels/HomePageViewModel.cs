@@ -128,8 +128,7 @@ namespace SpotlightGallery.ViewModels
             try
             {
                 IsLoading = true;
-                (NextWallpaperCommand as RelayCommand)?.NotifyCanExecuteChanged();
-                (ApplyWallpaperCommand as RelayCommand)?.NotifyCanExecuteChanged();
+                UpdateCommandsState();
 
                 HideInfoBar();
 
@@ -153,11 +152,15 @@ namespace SpotlightGallery.ViewModels
             finally
             {
                 IsLoading = false;
-
-                // 刷新命令状态
-                (NextWallpaperCommand as RelayCommand)?.NotifyCanExecuteChanged();
-                (ApplyWallpaperCommand as RelayCommand)?.NotifyCanExecuteChanged();
+                UpdateCommandsState();
             }
+        }
+
+        private void UpdateCommandsState()
+        {
+            (NextWallpaperCommand as RelayCommand)?.NotifyCanExecuteChanged();
+            (ApplyWallpaperCommand as RelayCommand)?.NotifyCanExecuteChanged();
+            (SaveWallpaperCommand as RelayCommand)?.NotifyCanExecuteChanged();
         }
 
         /// <summary>
