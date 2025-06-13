@@ -2,6 +2,7 @@
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Media.Imaging;
+using SpotlightGallery.Models;
 using SpotlightGallery.Services;
 using System;
 using System.Collections.Generic;
