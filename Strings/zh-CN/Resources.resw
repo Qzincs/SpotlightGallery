@@ -135,7 +135,115 @@
   <data name="NextImageButton.Content" xml:space="preserve">
     <value>换一张</value>
   </data>
-  <data name="Settings.Content" xml:space="preserve">
+  <data name="SettingsPageHeader.Text" xml:space="preserve">
     <value>设置</value>
+  </data>
+  <data name="Features.Text" xml:space="preserve">
+    <value>功能</value>
+  </data>
+  <data name="WallpaperSource.Header" xml:space="preserve">
+    <value>壁纸来源</value>
+  </data>
+  <data name="WindowsSpotlight.Content" xml:space="preserve">
+    <value>Windows 聚焦</value>
+  </data>
+  <data name="Bing.Content" xml:space="preserve">
+    <value>必应</value>
+  </data>
+  <data name="ImageResolution.Header" xml:space="preserve">
+    <value>图像分辨率</value>
+  </data>
+  <data name="AutoUpdate.Header" xml:space="preserve">
+    <value>自动更新</value>
+  </data>
+  <data name="AutoUpdate.Description" xml:space="preserve">
+    <value>定时更新壁纸</value>
+  </data>
+  <data name="UpdateMode.Header" xml:space="preserve">
+    <value>更新模式</value>
+  </data>
+  <data name="Daily.Content" xml:space="preserve">
+    <value>每天</value>
+  </data>
+  <data name="Every12Hours.Content" xml:space="preserve">
+    <value>每12小时</value>
+  </data>
+  <data name="AtSpecificTime.Content" xml:space="preserve">
+    <value>指定时间</value>
+  </data>
+  <data name="UpdateTime.Header" xml:space="preserve">
+    <value>更新时间</value>
+  </data>
+  <data name="AutoSave.Header" xml:space="preserve">
+    <value>自动保存</value>
+  </data>
+  <data name="AutoSave.Description" xml:space="preserve">
+    <value>自动将壁纸保存至您选择的文件夹</value>
+  </data>
+  <data name="OpenFolder.Content" xml:space="preserve">
+    <value>打开文件夹</value>
+  </data>
+  <data name="Change.Content" xml:space="preserve">
+    <value>更改</value>
+  </data>
+  <data name="MaxStorage.Header" xml:space="preserve">
+    <value>最大存储容量</value>
+  </data>
+  <data name="MaxStorage.Description" xml:space="preserve">
+    <value>设置保存壁纸的最大空间，超出后将自动清理</value>
+  </data>
+  <data name="Unlimited.Content" xml:space="preserve">
+    <value>无限制</value>
+  </data>
+  <data name="Appearance.Text" xml:space="preserve">
+    <value>外观</value>
+  </data>
+  <data name="AppTheme.Header" xml:space="preserve">
+    <value>应用主题</value>
+  </data>
+  <data name="LightTheme.Content" xml:space="preserve">
+    <value>浅色主题</value>
+  </data>
+  <data name="DarkTheme.Content" xml:space="preserve">
+    <value>深色主题</value>
+  </data>
+  <data name="UseSystemSetting.Content" xml:space="preserve">
+    <value>使用系统设置</value>
+  </data>
+  <data name="DisplayLanguage.Header" xml:space="preserve">
+    <value>显示语言</value>
+  </data>
+  <data name="Chinese.Content" xml:space="preserve">
+    <value>中文</value>
+  </data>
+  <data name="English.Content" xml:space="preserve">
+    <value>English</value>
+  </data>
+  <data name="About.Text" xml:space="preserve">
+    <value>关于</value>
+  </data>
+  <data name="AppDescription.Description" xml:space="preserve">
+    <value>一个简单的壁纸应用，由WinUI3构建</value>
+  </data>
+  <data name="OpenSource.Header" xml:space="preserve">
+    <value>开放源代码</value>
+  </data>
+  <data name="OpenSource.Description" xml:space="preserve">
+    <value>这是一个开源项目，欢迎贡献代码和提出建议</value>
+  </data>
+  <data name="ProjectHome.Content" xml:space="preserve">
+    <value>项目主页</value>
+  </data>
+  <data name="License.Content" xml:space="preserve">
+    <value>许可证</value>
+  </data>
+  <data name="Feedback.Content" xml:space="preserve">
+    <value>反馈</value>
+  </data>
+  <data name="CopyrightNotice.Header" xml:space="preserve">
+    <value>图像版权声明</value>
+  </data>
+  <data name="CopyrightNotice.Description" xml:space="preserve">
+    <value>本应用展示的所有图像仅供个人壁纸使用，其版权归原作者或版权所有者所有</value>
   </data>
 </root>
