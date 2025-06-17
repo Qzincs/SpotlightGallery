@@ -5,6 +5,7 @@ using Microsoft.UI.Xaml.Data;
 using Microsoft.UI.Xaml.Input;
 using Microsoft.UI.Xaml.Media;
 using Microsoft.UI.Xaml.Navigation;
+using SpotlightGallery.ViewModels;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -18,14 +19,14 @@ using Windows.Foundation.Collections;
 
 namespace SpotlightGallery.Pages
 {
-    /// <summary>
-    /// An empty page that can be used on its own or navigated to within a Frame.
-    /// </summary>
     public sealed partial class SettingsPage : Page
     {
+        public SettingsViewModel ViewModel { get; }
         public SettingsPage()
         {
             InitializeComponent();
+            ViewModel = new SettingsViewModel();
+            this.DataContext = ViewModel;
         }
     }
 }
