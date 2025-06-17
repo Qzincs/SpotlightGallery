@@ -47,10 +47,10 @@ namespace SpotlightGallery
             IntPtr hWnd = WindowNative.GetWindowHandle(startupWindow);
             var windowId = Win32Interop.GetWindowIdFromWindow(hWnd);
             var appWindow = AppWindow.GetFromWindowId(windowId);
-            
+
             // 调整窗口大小
             appWindow.Resize(new SizeInt32(DefaultWindowWidth, DefaultWindowHeight));
-            
+
             // 使窗口居中显示
             CenterWindow(appWindow);
 
@@ -58,6 +58,12 @@ namespace SpotlightGallery
             windowHook = new WindowProcedureHook(startupWindow, WndProc);
 
             startupWindow.Activate();
+
+            int themeIndex = SettingsHelper.GetSetting("AppTheme", 2);
+            ThemeManager.ApplyTheme(themeIndex);
+
+            // 监听系统主题变化，自动更新标题栏按钮颜色
+            ThemeManager.RegisterSystemThemeListener(startupWindow);
         }
 
         /// <summary>

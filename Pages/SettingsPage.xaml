@@ -7,7 +7,8 @@
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     xmlns:toolkit="using:CommunityToolkit.WinUI.Controls"
-    mc:Ignorable="d">
+    mc:Ignorable="d"
+    NavigationCacheMode="Enabled">
     <Page.Resources>
         <!--  These styles can be referenced to create a consistent SettingsPage layout  -->
         <!--  Reference SettingsExpander Page in Windows Community Toolkit Gallery for the full sample  -->
@@ -44,6 +45,101 @@
             VerticalScrollMode="Auto">
             <Border>
                 <StackPanel Spacing="{StaticResource SettingsCardSpacing}">
+                    <TextBlock Style="{StaticResource SettingsSectionHeaderTextBlockStyle}"
+                               x:Uid="Features"/>
+                    <toolkit:SettingsCard x:Uid="WallpaperSource">
+                        <toolkit:SettingsCard.HeaderIcon>
+                            <FontIcon Glyph="&#xE8B9;" />
+                        </toolkit:SettingsCard.HeaderIcon>
+                        <ComboBox SelectedIndex="0">
+                            <ComboBoxItem x:Uid="WindowsSpotlight"/>
+                            <ComboBoxItem x:Uid="Bing"/>
+                        </ComboBox>
+                    </toolkit:SettingsCard>
+                    <toolkit:SettingsCard x:Uid="ImageResolution">
+                        <toolkit:SettingsCard.HeaderIcon>
+                            <FontIcon Glyph="&#xE799;" />
+                        </toolkit:SettingsCard.HeaderIcon>
+                        <ComboBox SelectedIndex="0">
+                            <ComboBoxItem Content="3840×2160"/>
+                            <ComboBoxItem Content="1920×1080"/>
+                        </ComboBox>
+                    </toolkit:SettingsCard>
+                    <toolkit:SettingsExpander x:Uid="AutoUpdate">
+                        <toolkit:SettingsExpander.HeaderIcon>
+                            <FontIcon Glyph="&#xE895;" />
+                        </toolkit:SettingsExpander.HeaderIcon>
+                        <ToggleSwitch/>
+                        <toolkit:SettingsExpander.Items>
+                            <toolkit:SettingsCard x:Uid="UpdateMode">
+                                <ComboBox SelectedIndex="0">
+                                    <ComboBoxItem x:Uid="Daily"/>
+                                    <ComboBoxItem x:Uid="Every12Hours"/>
+                                    <ComboBoxItem x:Uid="AtSpecificTime"/>
+                                </ComboBox>
+                            </toolkit:SettingsCard>
+                            <toolkit:SettingsCard x:Uid="UpdateTime"
+                                                  Visibility="Visible">
+                                <TimePicker/>
+                            </toolkit:SettingsCard>
+                        </toolkit:SettingsExpander.Items>
+                    </toolkit:SettingsExpander>
+                    <toolkit:SettingsExpander x:Uid="AutoSave">
+                        <toolkit:SettingsExpander.HeaderIcon>
+                            <FontIcon Glyph="&#xE74E;" />
+                        </toolkit:SettingsExpander.HeaderIcon>
+                        <ToggleSwitch/>
+                        <toolkit:SettingsExpander.Items>
+                            <toolkit:SettingsCard Header="C:\User\Pictures\SpotlightGallery">
+                                <Grid>
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="*"/>
+                                        <ColumnDefinition Width="*"/>
+                                    </Grid.ColumnDefinitions>
+                                    <Button Grid.Column="0"
+                                            Margin="0,0,8,0"
+                                            x:Uid="OpenFolder"/>
+                                    <Button Grid.Column="1"
+                                            x:Uid="Change"/>
+                                </Grid>
+                            </toolkit:SettingsCard>
+                            <toolkit:SettingsCard x:Uid="MaxStorage">
+                                <ComboBox SelectedIndex="0">
+                                    <ComboBoxItem Content="100MB"/>
+                                    <ComboBoxItem Content="200MB"/>
+                                    <ComboBoxItem Content="500MB"/>
+                                    <ComboBoxItem x:Uid="Unlimited"/>
+                                </ComboBox>
+                            </toolkit:SettingsCard>
+                        </toolkit:SettingsExpander.Items>
+
+                    </toolkit:SettingsExpander>
+
+                    <TextBlock Style="{StaticResource SettingsSectionHeaderTextBlockStyle}"
+                               x:Uid="Appearance"/>
+                    <toolkit:SettingsCard x:Uid="AppTheme">
+                        <toolkit:SettingsCard.HeaderIcon>
+                            <FontIcon Glyph="&#xE790;"/>
+                        </toolkit:SettingsCard.HeaderIcon>
+                        <ComboBox
+                            x:Name="themeMode" SelectedIndex="{x:Bind ViewModel.AppThemeIndex, Mode=TwoWay}">
+                            <ComboBoxItem x:Uid="LightTheme"
+                                          Tag="Light"/>
+                            <ComboBoxItem x:Uid="DarkTheme"
+                                          Tag="Dark"/>
+                            <ComboBoxItem x:Uid="UseSystemSetting"
+                                          Tag="System"/>
+                        </ComboBox>
+                    </toolkit:SettingsCard>
+                    <toolkit:SettingsCard x:Uid="DisplayLanguage">
+                        <toolkit:SettingsCard.HeaderIcon>
+                            <FontIcon Glyph="&#xE774;"/>
+                        </toolkit:SettingsCard.HeaderIcon>
+                        <ComboBox SelectedIndex="0">
+                            <ComboBoxItem x:Uid="Chinese"/>
+                            <ComboBoxItem x:Uid="English"/>
+                        </ComboBox>
+                    </toolkit:SettingsCard>
 
                     <TextBlock Style="{StaticResource SettingsSectionHeaderTextBlockStyle}"
                                x:Uid="About"/>
