@@ -63,12 +63,6 @@
 
             <NavigationView.MenuItems>
                 <NavigationViewItem x:Uid="Home" Icon="Home" Tag="home" />
-                <NavigationViewItem x:Uid="History" Tag="history">
-                    <NavigationViewItem.Icon>
-                        <FontIcon Glyph="&#xE823;" />
-                    </NavigationViewItem.Icon>
-                </NavigationViewItem>
-                <NavigationViewItem x:Uid="Favorites" Icon="Favorite" Tag="favourite" />
             </NavigationView.MenuItems>
             <Frame x:Name="ContentFrame"/>
         </NavigationView>
