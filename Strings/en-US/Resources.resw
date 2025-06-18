@@ -137,7 +137,115 @@
   <data name="NextImageButton.Content" xml:space="preserve">
     <value>Next</value>
   </data>
-  <data name="Settings.Content" xml:space="preserve">
+  <data name="SettingsPageHeader.Text" xml:space="preserve">
     <value>Settings</value>
+  </data>
+  <data name="Features.Text" xml:space="preserve">
+    <value>Features</value>
+  </data>
+  <data name="WallpaperSource.Header" xml:space="preserve">
+    <value>Wallpaper Source</value>
+  </data>
+  <data name="WindowsSpotlight.Content" xml:space="preserve">
+    <value>Windows Spotlight</value>
+  </data>
+  <data name="Bing.Content" xml:space="preserve">
+    <value>Bing</value>
+  </data>
+  <data name="ImageResolution.Header" xml:space="preserve">
+    <value>Image Resolution</value>
+  </data>
+  <data name="AutoUpdate.Header" xml:space="preserve">
+    <value>Auto Update</value>
+  </data>
+  <data name="AutoUpdate.Description" xml:space="preserve">
+    <value>Automatically update wallpaper on schedule</value>
+  </data>
+  <data name="UpdateMode.Header" xml:space="preserve">
+    <value>Update Mode</value>
+  </data>
+  <data name="Daily.Content" xml:space="preserve">
+    <value>Daily</value>
+  </data>
+  <data name="Every12Hours.Content" xml:space="preserve">
+    <value>Every 12 hours</value>
+  </data>
+  <data name="AtSpecificTime.Content" xml:space="preserve">
+    <value>At specific time</value>
+  </data>
+  <data name="UpdateTime.Header" xml:space="preserve">
+    <value>Update Time</value>
+  </data>
+  <data name="AutoSave.Header" xml:space="preserve">
+    <value>Auto Save</value>
+  </data>
+  <data name="AutoSave.Description" xml:space="preserve">
+    <value>Automatically save wallpapers to your selected folder</value>
+  </data>
+  <data name="OpenFolder.Content" xml:space="preserve">
+    <value>Open Folder</value>
+  </data>
+  <data name="Change.Content" xml:space="preserve">
+    <value>Change</value>
+  </data>
+  <data name="MaxStorage.Header" xml:space="preserve">
+    <value>Maximum Storage</value>
+  </data>
+  <data name="MaxStorage.Description" xml:space="preserve">
+    <value>Set maximum space for saved wallpapers, will auto-clean when exceeded</value>
+  </data>
+  <data name="Unlimited.Content" xml:space="preserve">
+    <value>Unlimited</value>
+  </data>
+  <data name="Appearance.Text" xml:space="preserve">
+    <value>Appearance</value>
+  </data>
+  <data name="AppTheme.Header" xml:space="preserve">
+    <value>App Theme</value>
+  </data>
+  <data name="LightTheme.Content" xml:space="preserve">
+    <value>Light Theme</value>
+  </data>
+  <data name="DarkTheme.Content" xml:space="preserve">
+    <value>Dark Theme</value>
+  </data>
+  <data name="UseSystemSetting.Content" xml:space="preserve">
+    <value>Use System Setting</value>
+  </data>
+  <data name="DisplayLanguage.Header" xml:space="preserve">
+    <value>Display Language</value>
+  </data>
+  <data name="Chinese.Content" xml:space="preserve">
+    <value>Chinese</value>
+  </data>
+  <data name="English.Content" xml:space="preserve">
+    <value>English</value>
+  </data>
+  <data name="About.Text" xml:space="preserve">
+    <value>About</value>
+  </data>
+  <data name="AppDescription.Description" xml:space="preserve">
+    <value>A simple wallpaper app built with WinUI3</value>
+  </data>
+  <data name="OpenSource.Header" xml:space="preserve">
+    <value>Open Source</value>
+  </data>
+  <data name="OpenSource.Description" xml:space="preserve">
+    <value>This is an open source project, contributions and suggestions are welcome</value>
+  </data>
+  <data name="ProjectHome.Content" xml:space="preserve">
+    <value>Project Home</value>
+  </data>
+  <data name="License.Content" xml:space="preserve">
+    <value>License</value>
+  </data>
+  <data name="Feedback.Content" xml:space="preserve">
+    <value>Feedback</value>
+  </data>
+  <data name="CopyrightNotice.Header" xml:space="preserve">
+    <value>Image Copyright Notice</value>
+  </data>
+  <data name="CopyrightNotice.Description" xml:space="preserve">
+    <value>All images displayed in this app are for personal wallpaper use only, their copyrights belong to original authors or copyright holders</value>
   </data>
 </root>

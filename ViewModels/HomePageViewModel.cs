@@ -2,6 +2,7 @@
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Media.Imaging;
+using SpotlightGallery.Models;
 using SpotlightGallery.Services;
 using System;
 using System.Collections.Generic;
@@ -11,10 +12,13 @@ using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Input;
+using Windows.Storage;
+using Windows.Storage.Pickers;
+using Windows.Storage.Provider;
 
 namespace SpotlightGallery.ViewModels
 {
-    public class HomePageViewModel : INotifyPropertyChanged
+    public class HomePageViewModel : ViewModelBase
     {
         private readonly IWallpaperService wallpaperService;
         private Wallpaper wallpaper;
@@ -43,7 +47,6 @@ namespace SpotlightGallery.ViewModels
                     WallpaperTitle = wallpaper.title;
                     WallpaperDescription = wallpaper.description;
                     WallpaperCopyright = wallpaper.copyright;
-                    WallpaperImage = new BitmapImage(new Uri(wallpaper.url));
 
                     if (!string.IsNullOrEmpty(value?.path))
                     {
@@ -103,18 +106,21 @@ namespace SpotlightGallery.ViewModels
 
         public ICommand NextWallpaperCommand { get; }
         public ICommand ApplyWallpaperCommand { get; }
+        public ICommand SaveWallpaperCommand { get; }
 
         public HomePageViewModel(IWallpaperService wallpaperService)
         {
             this.wallpaperService = wallpaperService ?? throw new ArgumentNullException(nameof(wallpaperService));
             NextWallpaperCommand = new RelayCommand(async () => await LoadNextWallpaperAsync(), () => !IsLoading);
-            ApplyWallpaperCommand = new RelayCommand(ApplyWallpaper, () => !IsLoading && wallpaper != null && !string.IsNullOrEmpty(wallpaper.path));
+            ApplyWallpaperCommand = new RelayCommand(ApplyWallpaperAsync, () => !IsLoading && wallpaper != null && !string.IsNullOrEmpty(wallpaper.path));
+            SaveWallpaperCommand = new RelayCommand(SaveWallpaperAsync, () => !IsLoading && wallpaper != null && !string.IsNullOrEmpty(wallpaper.path));
+
+            Wallpaper = wallpaperService.GetCurrentWallpaper();
         }
 
         /// <summary>
         /// 加载下一张壁纸
         /// </summary>
-        /// <returns></returns>
         public async Task LoadNextWallpaperAsync()
         {
             if (IsLoading) return;
@@ -122,8 +128,7 @@ namespace SpotlightGallery.ViewModels
             try
             {
                 IsLoading = true;
-                (NextWallpaperCommand as RelayCommand)?.NotifyCanExecuteChanged();
-                (ApplyWallpaperCommand as RelayCommand)?.NotifyCanExecuteChanged();
+                UpdateCommandsState();
 
                 HideInfoBar();
 
@@ -147,20 +152,25 @@ namespace SpotlightGallery.ViewModels
             finally
             {
                 IsLoading = false;
-
-                // 刷新命令状态
-                (NextWallpaperCommand as RelayCommand)?.NotifyCanExecuteChanged();
-                (ApplyWallpaperCommand as RelayCommand)?.NotifyCanExecuteChanged();
+                UpdateCommandsState();
             }
+        }
+
+        private void UpdateCommandsState()
+        {
+            (NextWallpaperCommand as RelayCommand)?.NotifyCanExecuteChanged();
+            (ApplyWallpaperCommand as RelayCommand)?.NotifyCanExecuteChanged();
+            (SaveWallpaperCommand as RelayCommand)?.NotifyCanExecuteChanged();
         }
 
         /// <summary>
         /// 设置壁纸
         /// </summary>
-        /// <param name="wallpaper"></param>
-        public void ApplyWallpaper()
+        public async void ApplyWallpaperAsync()
         {
-            if (wallpaperService.SetWallpaper(wallpaper.path))
+            bool result = await wallpaperService.SetWallpaperAsync(wallpaper.path);
+
+            if (result)
             {
                 ShowInfoBar("壁纸设置成功", InfoBarSeverity.Success);
                 System.Diagnostics.Debug.WriteLine("壁纸设置成功");
@@ -169,6 +179,45 @@ namespace SpotlightGallery.ViewModels
             {
                 ShowInfoBar("壁纸设置失败", InfoBarSeverity.Error);
                 System.Diagnostics.Debug.WriteLine("壁纸设置失败");
+            }
+        }
+
+        public async void SaveWallpaperAsync()
+        {
+            StorageFile sourceFile = await StorageFile.GetFileFromPathAsync(wallpaper.path);
+
+
+            // 创建文件保存对话框
+            var savePicker = new FileSavePicker();
+
+            var window = App.StartupWindow;
+            var hwnd = WinRT.Interop.WindowNative.GetWindowHandle(window);
+            WinRT.Interop.InitializeWithWindow.Initialize(savePicker, hwnd);
+
+            savePicker.SuggestedStartLocation = PickerLocationId.PicturesLibrary;
+            savePicker.FileTypeChoices.Add("JPEG 图片", new List<string>() { ".jpg" });
+            savePicker.SuggestedFileName = $"{WallpaperTitle}";
+
+            StorageFile destinationFile = await savePicker.PickSaveFileAsync();
+
+            if (destinationFile != null)
+            {
+                CachedFileManager.DeferUpdates(destinationFile);
+
+                // 复制文件
+                await sourceFile.CopyAndReplaceAsync(destinationFile);
+
+                // 完成更新
+                FileUpdateStatus status = await CachedFileManager.CompleteUpdatesAsync(destinationFile);
+
+                if (status == FileUpdateStatus.Complete)
+                {
+                    ShowInfoBar("壁纸已成功保存", InfoBarSeverity.Success);
+                }
+                else
+                {
+                    ShowInfoBar("保存壁纸时出错", InfoBarSeverity.Error);
+                }
             }
         }
 
@@ -229,23 +278,6 @@ namespace SpotlightGallery.ViewModels
             {
                 infoBarTimer.Stop();
             }
-        }
-
-        public event PropertyChangedEventHandler PropertyChanged;
-
-        protected virtual void OnPropertyChanged([CallerMemberName] string propertyName = null)
-        {
-            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
-        }
-
-        protected bool SetProperty<T>(ref T storage, T value, [CallerMemberName] string propertyName = null)
-        {
-            if (EqualityComparer<T>.Default.Equals(storage, value))
-                return false;
-
-            storage = value;
-            OnPropertyChanged(propertyName);
-            return true;
         }
     }
 }

@@ -9,15 +9,15 @@
 
   <Identity
     Name="9e4113aa-d5d5-4b46-8db7-01c8e1c3d6cb"
-    Publisher="CN=zhaoy"
+    Publisher="CN=Qzink"
     Version="1.0.0.0" />
 
   <mp:PhoneIdentity PhoneProductId="9e4113aa-d5d5-4b46-8db7-01c8e1c3d6cb" PhonePublisherId="00000000-0000-0000-0000-000000000000"/>
 
   <Properties>
     <DisplayName>SpotlightGallery</DisplayName>
-    <PublisherDisplayName>zhaoy</PublisherDisplayName>
-    <Logo>Assets\StoreLogo.png</Logo>
+    <PublisherDisplayName>Qzink</PublisherDisplayName>
+    <Logo>Assets\AppLogo.png</Logo>
   </Properties>
 
   <Dependencies>
@@ -34,13 +34,14 @@
       Executable="$targetnametoken$.exe"
       EntryPoint="$targetentrypoint$">
       <uap:VisualElements
-        DisplayName="SpotlightGallery"
+        DisplayName="Spotlight Gallery"
         Description="SpotlightGallery"
         BackgroundColor="transparent"
         Square150x150Logo="Assets\Square150x150Logo.png"
         Square44x44Logo="Assets\Square44x44Logo.png">
-        <uap:DefaultTile Wide310x150Logo="Assets\Wide310x150Logo.png" />
+        <uap:DefaultTile Wide310x150Logo="Assets\Wide310x150Logo.png"  Square71x71Logo="Assets\SmallTile.png" Square310x310Logo="Assets\LargeTile.png"/>
         <uap:SplashScreen Image="Assets\SplashScreen.png" />
+        <uap:LockScreen BadgeLogo="Assets\BadgeLogo.png" Notification="badge"/>
       </uap:VisualElements>
     </Application>
   </Applications>

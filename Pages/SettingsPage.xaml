@@ -5,7 +5,7 @@
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:local="using:SpotlightGallery.Pages"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
-    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     xmlns:toolkit="using:CommunityToolkit.WinUI.Controls"
     mc:Ignorable="d">
     <Page.Resources>
@@ -21,41 +21,65 @@
             BasedOn="{StaticResource BodyStrongTextBlockStyle}"
             TargetType="TextBlock">
             <Style.Setters>
-                <Setter Property="Margin" Value="1,30,0,6" />
+                <Setter Property="Margin"
+                        Value="1,30,0,6"/>
             </Style.Setters>
         </Style>
     </Page.Resources>
 
     <Grid x:Name="RootGrid">
         <Grid.RowDefinitions>
-            <RowDefinition Height="Auto" />
-            <RowDefinition Height="*" />
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
         </Grid.RowDefinitions>
         <TextBlock
-            x:Name="PageHeader"
+            x:Name="SettingsPageHeader"
+            x:Uid="SettingsPageHeader"
             Margin="36,24,36,0"
-            Style="{StaticResource TitleTextBlockStyle}"
-            Text="Settings" />
+            Style="{StaticResource TitleTextBlockStyle}"/>
         <ScrollView
             Grid.Row="1"
-            Padding="36,0,36,0"
+            Padding="36,0,36,24"
             VerticalScrollBarVisibility="Auto"
-            VerticalScrollMode="Auto"
-            >
+            VerticalScrollMode="Auto">
             <Border>
                 <StackPanel Spacing="{StaticResource SettingsCardSpacing}">
-                    <TextBlock Style="{StaticResource SettingsSectionHeaderTextBlockStyle}" Text="Appearance &amp; behavior" />
-                    <toolkit:SettingsCard Description="Select which app theme to display" Header="App theme">
+
+                    <TextBlock Style="{StaticResource SettingsSectionHeaderTextBlockStyle}"
+                               x:Uid="About"/>
+                    <toolkit:SettingsCard x:Uid="AppDescription"
+                                              Header="Spotlight Gallery">
                         <toolkit:SettingsCard.HeaderIcon>
-                            <FontIcon Glyph="&#xE790;" />
+                            <ImageIcon Source="/Assets/AppLogo.png" />
                         </toolkit:SettingsCard.HeaderIcon>
-                        <ComboBox
-                            x:Name="themeMode"
-                            AutomationProperties.AutomationId="themeModeComboBox">
-                            <ComboBoxItem Content="Light" Tag="Light" />
-                            <ComboBoxItem Content="Dark" Tag="Dark" />
-                            <ComboBoxItem Content="Use system setting" Tag="Default" />
-                        </ComboBox>
+                        <TextBlock IsTextSelectionEnabled="True"
+                                   Foreground="{ThemeResource TextFillColorSecondaryBrush}" Text="0.1.0"/>
+                    </toolkit:SettingsCard>
+                    <toolkit:SettingsCard x:Uid="OpenSource">
+                        <toolkit:SettingsCard.HeaderIcon>
+                            <ImageIcon Source="ms-appx:///Assets/github.svg" />
+                        </toolkit:SettingsCard.HeaderIcon>
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="*"/>
+                            </Grid.ColumnDefinitions>
+                            <HyperlinkButton Grid.Column="0"
+                             x:Uid="ProjectHome"
+                             NavigateUri="https://github.com/Qzincs/SpotlightGallery"/>
+                            <HyperlinkButton Grid.Column="1"
+                             x:Uid="License"
+                             NavigateUri="https://github.com/Qzincs/SpotlightGallery/blob/main/LICENSE"/>
+                            <HyperlinkButton Grid.Column="2"
+                             x:Uid="Feedback"
+                             NavigateUri="https://github.com/Qzincs/SpotlightGallery/issues"/>
+                        </Grid>
+                    </toolkit:SettingsCard>
+                    <toolkit:SettingsCard x:Uid="CopyrightNotice">
+                        <toolkit:SettingsCard.HeaderIcon>
+                            <FontIcon Glyph="&#xE946;" />
+                        </toolkit:SettingsCard.HeaderIcon>
                     </toolkit:SettingsCard>
                 </StackPanel>
             </Border>
