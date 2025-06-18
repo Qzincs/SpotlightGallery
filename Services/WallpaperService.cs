@@ -1,31 +1,32 @@
 ﻿using Microsoft.Win32;
-using Newtonsoft.Json;
+using SpotlightGallery.Models;
+using SpotlightGallery.Models.Spotlight;
 using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Linq;
 using System.Net.Http;
-using System.Runtime.InteropServices;
-using System.Text;
+using System.Reflection.Metadata.Ecma335;
+using System.Text.Json;
 using System.Threading.Tasks;
+using Windows.Storage;
+using Windows.System.UserProfile;
 
 namespace SpotlightGallery.Services
 {
-    public class Wallpaper
+    public enum WallpaperSource
     {
-        public string title;
-        public string description;
-        public string copyright;
-        public string url;
-        public string? path;
-
-        public Wallpaper(string title, string description, string copyright, string url)
-        {
-            this.title = title;
-            this.description = description;
-            this.copyright = copyright;
-            this.url = url;
-        }
+        /// <summary>
+        /// Windows聚焦桌面，分辨率3840x2160
+        /// </summary>
+        SpotlightDesktop,
+        /// <summary>
+        /// Windows聚焦锁屏，分辨率1920x1080
+        /// </summary>
+        SpotlightLockScreen,
+        /// <summary>
+        /// Bing每日一图，多分辨率
+        /// </summary>
+        BingDaily
     }
 
     public interface IWallpaperService
@@ -41,78 +42,131 @@ namespace SpotlightGallery.Services
         /// </summary>
         /// <param name="wallpaperPath">壁纸文件路径</param>
         /// <returns>是否设置成功</returns>
-        bool SetWallpaper(string wallpaperPath);
+        Task<bool> SetWallpaperAsync(string wallpaperPath);
+
+        /// <summary>
+        /// 获取当前系统壁纸
+        /// </summary>
+        /// <returns>当前壁纸</returns>
+        Wallpaper GetCurrentWallpaper();
     }
 
     class WallpaperService : IWallpaperService
     {
-        // TODO 壁纸保存路径可以由用户配置
-        private readonly string wallpaperDirectory = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.MyPictures), "SpotlightGallery");
-        private readonly string metadataDirectory = Path.Combine(Windows.Storage.ApplicationData.Current.LocalFolder.Path, "WallpaperMetadata");
-
-        private List<Wallpaper> wallpapers = new List<Wallpaper>();
+        private readonly string dataDirectory = ApplicationData.Current.LocalFolder.Path;
 
         /// <summary>
-        /// 从API获取壁纸信息
+        /// 从特定的源获取壁纸信息的Json字符串
         /// </summary>
-        /// <returns></returns>
-        private async Task GetSomeWallpapers()
+        /// <param name="source">壁纸来源</param>
+        /// <returns>壁纸信息Json字符串</returns>
+        public async Task<string> FetchJsonFromApi(WallpaperSource source)
         {
+            string apiUrl = source switch
+            {
+                WallpaperSource.SpotlightDesktop => "https://fd.api.iris.microsoft.com/v4/api/selection?&placement=88000820&bcnt=1&country=CN&locale=zh-CN&fmt=json",
+                WallpaperSource.SpotlightLockScreen => "https://arc.msn.com/v3/Delivery/Placement?pid=338387&fmt=json&cdm=1&pl=zh-CN&lc=zh-CN&ctry=CN",
+                WallpaperSource.BingDaily => "https://services.bingapis.com/ge-apps/api/v2/bwc/hpimages?mkt=zh-cn&theme=bing&defaultBrowser=ME&dhpSetToBing=True&dseSetToBing=True",
+                _ => throw new ArgumentException("Unsupported wallpaper source", nameof(source))
+            };
+
             using (var httpClient = new HttpClient())
             {
-                // 单次获取壁纸数量
-                int count = 4;
-                // TODO 语言地区
-                string locale = "";
-
-                string apiUrl = $"https://fd.api.iris.microsoft.com/v4/api/selection?&placement=88000820&bcnt={count}&country=CN&locale=zh-CN&fmt=json";
-
                 HttpResponseMessage response = await httpClient.GetAsync(apiUrl);
-
                 if (response.IsSuccessStatusCode)
                 {
-                    string jsonString = await response.Content.ReadAsStringAsync();
-                    // 壁纸信息
-                    dynamic responseData = JsonConvert.DeserializeObject(jsonString);
-                    dynamic items = responseData.batchrsp.items;
-                    foreach (var item in items)
-                    {
-                        string imageJsonString = item.item;
-                        imageJsonString = imageJsonString.Replace("\\\"", "\"");
-                        dynamic imageJson = JsonConvert.DeserializeObject(imageJsonString);
-                        imageJson = imageJson.ad;
-
-                        string description = ((string)imageJson.iconHoverText).Split("\r\n")[0];
-                        Wallpaper wallpaper = new Wallpaper(
-                            (string)imageJson.title,
-                            (string)description,
-                            (string)imageJson.copyright,
-                            (string)imageJson.landscapeImage.asset
-                        );
-                        wallpapers.Add(wallpaper);
-                    }
+                    return await response.Content.ReadAsStringAsync();
                 }
+            }
+
+            return string.Empty;
+        }
+
+        /// <summary>
+        /// 从特定的源获取壁纸信息
+        /// </summary>
+        /// <param name="source">壁纸来源</param>
+        /// <returns>壁纸对象</returns>
+        public async Task<Wallpaper> GetWallpaperFromApi(WallpaperSource source)
+        {
+            string json = await FetchJsonFromApi(source);
+
+            switch (source)
+            {
+                case WallpaperSource.SpotlightDesktop:
+                    return ParseSpotlight(json, true);
+                case WallpaperSource.SpotlightLockScreen:
+                    return ParseSpotlight(json, false);
+                default:
+                    return new Wallpaper("", "", "", "");
             }
         }
 
+        /// <summary>
+        /// 解析Spotlight壁纸的json数据，Spotlight有桌面和锁屏两个源，使用isDesktop参数区分
+        /// </summary>
+        /// <param name="json">壁纸json</param>
+        /// <param name="isDesktop">是否为Spotlight桌面源</param>
+        /// <returns>壁纸对象</returns>
+        private Wallpaper ParseSpotlight(string json, bool isDesktop)
+        {
+            var spotlightResponse = JsonSerializer.Deserialize<SpotlightResponse>(json);
+
+            if (spotlightResponse?.BatchResponse?.Items != null)
+            {
+                foreach (var item in spotlightResponse.BatchResponse.Items)
+                {
+                    if (!string.IsNullOrEmpty(item.ItemJson))
+                    {
+                        if (isDesktop)
+                        {
+                            var itemContent = JsonSerializer.Deserialize<SpotlightDesktopItemContent>(item.ItemJson);
+                            if (itemContent?.Ad != null)
+                            {
+                                var ad = itemContent.Ad;
+                                string description = ad.GetDescription()?.Split("\r\n")[0] ?? "";
+                                return new Wallpaper(
+                                    ad.GetTitle(),
+                                    description,
+                                    ad.GetCopyright(),
+                                    ad.GetImageUrl()
+                                );
+                            }
+                        }
+                        else
+                        {
+                            var itemContent = JsonSerializer.Deserialize<SpotlightLockscreenItemContent>(item.ItemJson);
+                            if (itemContent?.Ad != null)
+                            {
+                                var ad = itemContent.Ad;
+                                string description = ad.GetDescription()?.Split("\r\n")[0] ?? "";
+                                return new Wallpaper(
+                                    ad.GetTitle(),
+                                    description,
+                                    ad.GetCopyright(),
+                                    ad.GetImageUrl()
+                                );
+                            }
+                        }
+                    }
+                }
+            }
+            return new Wallpaper("", "", "", "");
+        }
+
+        /// <summary>
+        /// 下载一张壁纸保存到本地，返回壁纸对象
+        /// </summary>
         public async Task<Wallpaper> DownloadWallpaperAsync()
         {
-            Wallpaper wallpaper;
+            Wallpaper wallpaper = await GetWallpaperFromApi(WallpaperSource.SpotlightDesktop);
 
-            if (wallpapers.Count == 0)
+            string wallpaperPath = Path.Combine(dataDirectory, $"{wallpaper.title}.jpg");
+
+            if (File.Exists(wallpaperPath))
             {
-                await GetSomeWallpapers();
+                return RetrieveWallpaperMetadata(wallpaperPath);
             }
-
-            if (wallpapers.Count == 0)
-            {
-                throw new Exception("没有可用的壁纸");
-            }
-
-            wallpaper = wallpapers[0];
-            wallpapers.RemoveAt(0);
-
-            string wallpaperPath = Path.Combine(wallpaperDirectory, $"{wallpaper.title}.jpg");
 
             using (var httpClient = new HttpClient())
             {
@@ -120,9 +174,9 @@ namespace SpotlightGallery.Services
                 HttpResponseMessage imageResponse = await httpClient.GetAsync(wallpaper.url);
                 byte[] imageData = await imageResponse.Content.ReadAsByteArrayAsync();
 
-                if (!File.Exists(wallpaperDirectory))
+                if (!File.Exists(dataDirectory))
                 {
-                    Directory.CreateDirectory(wallpaperDirectory);
+                    Directory.CreateDirectory(dataDirectory);
                 }
 
                 // 将壁纸保存到本地
@@ -131,10 +185,50 @@ namespace SpotlightGallery.Services
 
             wallpaper.path = wallpaperPath;
 
+            SaveWallpaperMetadata(wallpaper);
+
             return wallpaper;
         }
 
-        public bool SetWallpaper(string wallpaperPath)
+        /// <summary>
+        /// 获取当前系统壁纸。如果本地存有壁纸元数据，则壁纸对象中包含相关信息；如果没有，则只包含壁纸路径。
+        /// </summary>
+        /// <returns>当前系统设置的壁纸对象</returns>
+        public Wallpaper GetCurrentWallpaper()
+        {
+            try
+            {
+                RegistryKey key = Registry.CurrentUser.OpenSubKey(@"Control Panel\Desktop", false);
+
+                if (key == null)
+                {
+                    System.Diagnostics.Debug.WriteLine("无法打开桌面设置注册表项");
+                    return new Wallpaper("", "", "", "");
+                }
+
+                string wallpaperPath = key.GetValue("wallpaper") as string;
+
+                if (string.IsNullOrEmpty(wallpaperPath) || !File.Exists(wallpaperPath))
+                {
+                    System.Diagnostics.Debug.WriteLine("当前壁纸路径无效或不存在");
+                    return new Wallpaper("", "", "", "");
+                }
+
+                return RetrieveWallpaperMetadata(wallpaperPath);
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"获取当前壁纸时出错: {ex.Message}");
+                return new Wallpaper("", "", "", "");
+            }
+        }
+
+        /// <summary>
+        /// 设置系统壁纸
+        /// </summary>
+        /// <param name="wallpaperPath">壁纸文件路径</param>
+        /// <returns>是否设置成功</returns>
+        public async Task<bool> SetWallpaperAsync(string wallpaperPath)
         {
             if (!File.Exists(wallpaperPath))
             {
@@ -142,27 +236,64 @@ namespace SpotlightGallery.Services
                 return false;
             }
 
-            // 打开注册表项 HKEY_CURRENT_USER\Control Panel\Desktop
-            RegistryKey key = Registry.CurrentUser.OpenSubKey(@"Control Panel\Desktop", true);
+            if (!UserProfilePersonalizationSettings.IsSupported())
+            {
+                System.Diagnostics.Debug.WriteLine("当前系统不支持设置壁纸。");
+                return false;
+            }
 
-            // 将 WallpaperStyle 和 TileWallpaper 的值分别设为 10 和 0
-            // WallpaperStyle 设为 10 表示桌面壁纸不平铺，而是按比例拉伸
-            // TileWallpaper 设为 0 表示不平铺壁纸
-            key.SetValue("WallpaperStyle", "10");
-            key.SetValue("TileWallpaper", "0");
-
-            const int SPI_SETDESKWALLPAPER = 0x0014;  // 设置壁纸
-            const int SPIF_UPDATEINIFILE = 0x01;      // 更新用户配置文件
-            const int SPIF_SENDCHANGE = 0x02;         // 广播设置变更消息
-
-            // 调用 SystemParametersInfo 函数设置桌面壁纸
-            // wallpaperPath 表示壁纸的路径
-            bool result = SystemParametersInfo(SPI_SETDESKWALLPAPER, 0, wallpaperPath, SPIF_UPDATEINIFILE | SPIF_SENDCHANGE);
-
+            var file = await StorageFile.GetFileFromPathAsync(wallpaperPath);
+            UserProfilePersonalizationSettings profileSettings = UserProfilePersonalizationSettings.Current;
+            bool result = await profileSettings.TrySetWallpaperImageAsync(file);
             return result;
         }
 
-        [DllImport("user32.dll", SetLastError = true, CharSet = CharSet.Unicode)]
-        private static extern bool SystemParametersInfo(int uAction, int uParam, string lpvParam, int fuWinIni);
+        /// <summary>
+        /// 保存壁纸元数据到本地文件
+        /// </summary>
+        /// <param name="wallpaper">要保存的壁纸对象</param>
+        private void SaveWallpaperMetadata(Wallpaper wallpaper)
+        {
+            string metadataPath = Path.Combine(dataDirectory, "metadata.json");
+
+            if (!File.Exists(metadataPath))
+            {
+                File.WriteAllText(metadataPath, "[]");
+            }
+
+            string json = File.ReadAllText(metadataPath);
+            var options = new JsonSerializerOptions { WriteIndented = true };
+            List<Wallpaper> metadata = JsonSerializer.Deserialize<List<Wallpaper>>(json, options) ?? new List<Wallpaper>();
+            metadata.Add(wallpaper);
+            string newJson = JsonSerializer.Serialize(metadata, options);
+            File.WriteAllText(metadataPath, newJson);
+        }
+
+        /// <summary>
+        /// 从本地文件中检索壁纸元数据。如果找不到元数据，则返回只包含路径的壁纸对象。
+        /// </summary>
+        /// <param name="wallpaperPath">壁纸文件路径</param>
+        private Wallpaper RetrieveWallpaperMetadata(string wallpaperPath)
+        {
+            string metadataPath = Path.Combine(dataDirectory, "metadata.json");
+
+            if (!File.Exists(metadataPath))
+            {
+                return new Wallpaper("", "", "", "")
+                {
+                    path = wallpaperPath
+                };
+            }
+
+            string title = Path.GetFileNameWithoutExtension(wallpaperPath);
+
+            string json = File.ReadAllText(metadataPath);
+            var wallpapers = JsonSerializer.Deserialize<List<Wallpaper>>(json) ?? new List<Wallpaper>();
+
+            return wallpapers.Find(w => w.title == title) ?? new Wallpaper("", "", "", "")
+            {
+                path = wallpaperPath
+            };
+        }
     }
 }

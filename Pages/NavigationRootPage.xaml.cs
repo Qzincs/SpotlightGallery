@@ -67,12 +67,6 @@ namespace SpotlightGallery.Pages
                         case "home":
                             ContentFrame.Navigate(typeof(HomePage));
                             break;
-                        case "history":
-                            // ContentFrame.Navigate(typeof(HistoryPage));
-                            break;
-                        case "favourite":
-                            // ContentFrame.Navigate(typeof(FavouritePage));
-                            break;
                     }
                 }
 

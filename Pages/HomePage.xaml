@@ -102,8 +102,9 @@
             <!-- 右侧按钮 -->
             <Button
                 Grid.Column="1"
-                x:Name="FavoriteButton">
-                <FontIcon Glyph="&#xE734;"/>
+                x:Name="SaveButton"
+                Command="{x:Bind ViewModel.SaveWallpaperCommand}">
+                <FontIcon Glyph="&#xE74E;" />
             </Button>
             <Button
                 Grid.Column="2"

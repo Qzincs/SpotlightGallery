@@ -29,12 +29,26 @@ namespace SpotlightGallery.Pages
 
         public HomePage()
         {
-            InitializeComponent();
+            try
+            {
+                InitializeComponent();
 
-            var wallpaperService = new WallpaperService();
-            ViewModel = new HomePageViewModel(wallpaperService);
+                var wallpaperService = new WallpaperService();
+                ViewModel = new HomePageViewModel(wallpaperService);
 
-            this.DataContext = ViewModel;
+                if (ViewModel != null && this != null)
+                {
+                    this.DataContext = ViewModel;
+                }
+                else
+                {
+                    System.Diagnostics.Debug.WriteLine($"设置 DataContext 失败 - ViewModel: {ViewModel != null}, this: {this != null}");
+                }
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"HomePage 初始化异常: {ex}");
+            }
         }
     }
 }
