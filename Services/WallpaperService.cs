@@ -16,21 +16,31 @@ namespace SpotlightGallery.Services
     public enum WallpaperSource
     {
         /// <summary>
-        /// Windows聚焦桌面，分辨率3840x2160
+        /// Windows聚焦
         /// </summary>
-        SpotlightDesktop,
-        /// <summary>
-        /// Windows聚焦锁屏，分辨率1920x1080
-        /// </summary>
-        SpotlightLockScreen,
+        Spotlight,
         /// <summary>
         /// Bing每日一图，多分辨率
         /// </summary>
         BingDaily
     }
 
+    public enum SpotlightResolution
+    {
+        Desktop_3840x2160,
+        Lockscreen_1920x1080
+    }
+
+    public enum BingResolution
+    {
+        R1920x1080,
+    }
+
     public interface IWallpaperService
     {
+        WallpaperSource CurrentSource { get; }
+        int CurrentResolutionIndex { get; }
+
         /// <summary>
         /// 下载一张壁纸
         /// </summary>
@@ -49,11 +59,50 @@ namespace SpotlightGallery.Services
         /// </summary>
         /// <returns>当前壁纸</returns>
         Wallpaper GetCurrentWallpaper();
+
+        /// <summary>
+        /// 更换壁纸来源
+        /// </summary>
+        /// <param name="source">壁纸来源</param>
+        /// <param name="resolutionIndex">分辨率索引</param>
+        void ChangeSource(WallpaperSource source, int resolutionIndex);
     }
 
     class WallpaperService : IWallpaperService
     {
         private readonly string dataDirectory = ApplicationData.Current.LocalFolder.Path;
+
+        private WallpaperSource currentSource = WallpaperSource.Spotlight;
+        private SpotlightResolution spotlightResolution = SpotlightResolution.Desktop_3840x2160;
+        private BingResolution bingResolution = BingResolution.R1920x1080;
+
+        public WallpaperSource CurrentSource => currentSource;
+        public int CurrentResolutionIndex
+        {
+            get
+            {
+                return currentSource switch
+                {
+                    WallpaperSource.Spotlight => (int)spotlightResolution,
+                    WallpaperSource.BingDaily => (int)bingResolution,
+                    _ => 0
+                };
+            }
+        }
+
+        public void ChangeSource(WallpaperSource source, int resolutionIndex)
+        {
+            currentSource = source;
+            switch (source)
+            {
+                case WallpaperSource.Spotlight:
+                    spotlightResolution = (SpotlightResolution)resolutionIndex;
+                    break;
+                case WallpaperSource.BingDaily:
+                    bingResolution = (BingResolution)resolutionIndex;
+                    break;
+            }
+        }
 
         /// <summary>
         /// 从特定的源获取壁纸信息的Json字符串
@@ -62,13 +111,19 @@ namespace SpotlightGallery.Services
         /// <returns>壁纸信息Json字符串</returns>
         public async Task<string> FetchJsonFromApi(WallpaperSource source)
         {
-            string apiUrl = source switch
+            string apiUrl = string.Empty;
+            switch (currentSource)
             {
-                WallpaperSource.SpotlightDesktop => "https://fd.api.iris.microsoft.com/v4/api/selection?&placement=88000820&bcnt=1&country=CN&locale=zh-CN&fmt=json",
-                WallpaperSource.SpotlightLockScreen => "https://arc.msn.com/v3/Delivery/Placement?pid=338387&fmt=json&cdm=1&pl=zh-CN&lc=zh-CN&ctry=CN",
-                WallpaperSource.BingDaily => "https://services.bingapis.com/ge-apps/api/v2/bwc/hpimages?mkt=zh-cn&theme=bing&defaultBrowser=ME&dhpSetToBing=True&dseSetToBing=True",
-                _ => throw new ArgumentException("Unsupported wallpaper source", nameof(source))
-            };
+                case WallpaperSource.Spotlight:
+                    if (spotlightResolution == SpotlightResolution.Desktop_3840x2160)
+                        apiUrl = "https://fd.api.iris.microsoft.com/v4/api/selection?&placement=88000820&bcnt=1&country=CN&locale=zh-CN&fmt=json";
+                    else
+                        apiUrl = "https://arc.msn.com/v3/Delivery/Placement?pid=338387&fmt=json&cdm=1&pl=zh-CN&lc=zh-CN&ctry=CN";
+                    break;
+                case WallpaperSource.BingDaily:
+                    apiUrl = "https://www.bing.com/HPImageArchive.aspx?format=js&idx=0&n=1&mkt=zh-CN";
+                    break;
+            }
 
             using (var httpClient = new HttpClient())
             {
@@ -91,14 +146,17 @@ namespace SpotlightGallery.Services
         {
             string json = await FetchJsonFromApi(source);
 
-            switch (source)
+            if (source == WallpaperSource.Spotlight)
             {
-                case WallpaperSource.SpotlightDesktop:
-                    return ParseSpotlight(json, true);
-                case WallpaperSource.SpotlightLockScreen:
+                if (spotlightResolution == SpotlightResolution.Desktop_3840x2160)
+                return ParseSpotlight(json, true);
+                else
                     return ParseSpotlight(json, false);
-                default:
-                    return new Wallpaper("", "", "", "");
+            }
+            else
+            {
+                // 解析Bing每日一图的json数据
+                throw new NotImplementedException("Bing每日一图的解析待实现");
             }
         }
 
@@ -159,7 +217,7 @@ namespace SpotlightGallery.Services
         /// </summary>
         public async Task<Wallpaper> DownloadWallpaperAsync()
         {
-            Wallpaper wallpaper = await GetWallpaperFromApi(WallpaperSource.SpotlightDesktop);
+            Wallpaper wallpaper = await GetWallpaperFromApi(currentSource);
 
             string wallpaperPath = Path.Combine(dataDirectory, $"{wallpaper.title}.jpg");
 

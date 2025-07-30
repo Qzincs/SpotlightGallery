@@ -20,7 +20,7 @@ namespace SpotlightGallery.ViewModels
 {
     public class HomePageViewModel : ViewModelBase
     {
-        private readonly IWallpaperService wallpaperService;
+        private readonly IWallpaperService wallpaperService = ServiceLocator.WallpaperService;
         private Wallpaper wallpaper;
 
         private string wallpaperTitle;
@@ -108,9 +108,8 @@ namespace SpotlightGallery.ViewModels
         public ICommand ApplyWallpaperCommand { get; }
         public ICommand SaveWallpaperCommand { get; }
 
-        public HomePageViewModel(IWallpaperService wallpaperService)
+        public HomePageViewModel()
         {
-            this.wallpaperService = wallpaperService ?? throw new ArgumentNullException(nameof(wallpaperService));
             NextWallpaperCommand = new RelayCommand(async () => await LoadNextWallpaperAsync(), () => !IsLoading);
             ApplyWallpaperCommand = new RelayCommand(ApplyWallpaperAsync, () => !IsLoading && wallpaper != null && !string.IsNullOrEmpty(wallpaper.path));
             SaveWallpaperCommand = new RelayCommand(SaveWallpaperAsync, () => !IsLoading && wallpaper != null && !string.IsNullOrEmpty(wallpaper.path));
