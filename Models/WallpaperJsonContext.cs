@@ -1,4 +1,3 @@
-using SpotlightGallery.Models.Spotlight;
 using System.Collections.Generic;
 using System.Text.Json.Serialization;
 
