@@ -51,7 +51,7 @@
                         <toolkit:SettingsCard.HeaderIcon>
                             <FontIcon Glyph="&#xE8B9;" />
                         </toolkit:SettingsCard.HeaderIcon>
-                        <ComboBox SelectedIndex="0">
+                        <ComboBox SelectedIndex="{x:Bind ViewModel.SourceIndex, Mode=TwoWay}">
                             <ComboBoxItem x:Uid="WindowsSpotlight"/>
                             <ComboBoxItem x:Uid="Bing"/>
                         </ComboBox>
@@ -60,10 +60,9 @@
                         <toolkit:SettingsCard.HeaderIcon>
                             <FontIcon Glyph="&#xE799;" />
                         </toolkit:SettingsCard.HeaderIcon>
-                        <ComboBox SelectedIndex="0">
-                            <ComboBoxItem Content="3840×2160"/>
-                            <ComboBoxItem Content="1920×1080"/>
-                        </ComboBox>
+                        <ComboBox 
+                            ItemsSource="{x:Bind ViewModel.ResolutionOptions, Mode=OneWay}"
+                            SelectedIndex="{x:Bind ViewModel.ResolutionIndex, Mode=TwoWay}" />
                     </toolkit:SettingsCard>
                     <toolkit:SettingsExpander x:Uid="AutoUpdate">
                         <toolkit:SettingsExpander.HeaderIcon>

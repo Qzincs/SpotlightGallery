@@ -33,8 +33,7 @@ namespace SpotlightGallery.Pages
             {
                 InitializeComponent();
 
-                var wallpaperService = new WallpaperService();
-                ViewModel = new HomePageViewModel(wallpaperService);
+                ViewModel = new HomePageViewModel();
 
                 if (ViewModel != null && this != null)
                 {
