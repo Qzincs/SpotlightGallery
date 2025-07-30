@@ -1,6 +1,6 @@
 using System.Text.Json.Serialization;
 
-namespace SpotlightGallery.Models.Spotlight
+namespace SpotlightGallery.Models
 {
     public class SpotlightResponse
     {

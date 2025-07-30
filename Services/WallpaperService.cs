@@ -1,6 +1,5 @@
 ﻿using Microsoft.Win32;
 using SpotlightGallery.Models;
-using SpotlightGallery.Models.Spotlight;
 using System;
 using System.Collections.Generic;
 using System.IO;
