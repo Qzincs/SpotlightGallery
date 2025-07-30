@@ -120,7 +120,7 @@ namespace SpotlightGallery.Services
                         apiUrl = "https://arc.msn.com/v3/Delivery/Placement?pid=338387&fmt=json&cdm=1&pl=zh-CN&lc=zh-CN&ctry=CN";
                     break;
                 case WallpaperSource.BingDaily:
-                    apiUrl = "https://www.bing.com/HPImageArchive.aspx?format=js&idx=0&n=1&mkt=zh-CN";
+                    apiUrl = "https://services.bingapis.com/ge-apps/api/v2/bwc/hpimages?mkt=zh-cn&theme=bing&defaultBrowser=ME&dhpSetToBing=True&dseSetToBing=True";
                     break;
             }
 
@@ -154,8 +154,7 @@ namespace SpotlightGallery.Services
             }
             else
             {
-                // 解析Bing每日一图的json数据
-                throw new NotImplementedException("Bing每日一图的解析待实现");
+                return ParseBingDaily(json);
             }
         }
 
@@ -207,6 +206,23 @@ namespace SpotlightGallery.Services
                         }
                     }
                 }
+            }
+            return new Wallpaper("", "", "", "");
+        }
+
+        private Wallpaper ParseBingDaily(string json)
+        {
+            var bingResponse = JsonSerializer.Deserialize<BingDailyResponse>(json);
+
+            if (bingResponse?.Images.Count > 0 && bingResponse?.Images != null)
+            {
+                var image = bingResponse.Images[0];
+                return new Wallpaper(
+                    image.Headline,
+                    image.Title,
+                    image.Copyright,
+                    image.Url
+                );
             }
             return new Wallpaper("", "", "", "");
         }
