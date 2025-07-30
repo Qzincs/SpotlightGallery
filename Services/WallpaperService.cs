@@ -32,7 +32,40 @@ namespace SpotlightGallery.Services
 
     public enum BingResolution
     {
+        R3840x2160,
+        R1920x1200,
         R1920x1080,
+        R1366x768,
+        R1280x768,
+        R1024x768,
+        R800x600
+    }
+    public static class ResolutionExtensions
+    {
+        public static string ToResolutionString(this SpotlightResolution resolution)
+        {
+            return resolution switch
+            {
+                SpotlightResolution.Desktop_3840x2160 => "UHD",
+                SpotlightResolution.Lockscreen_1920x1080 => "1920x1080",
+                _ => resolution.ToString()
+            };
+        }
+        
+        public static string ToResolutionString(this BingResolution resolution)
+        {
+            return resolution switch
+            {
+                BingResolution.R3840x2160 => "UHD",
+                BingResolution.R1920x1200 => "1920x1200",
+                BingResolution.R1920x1080 => "1920x1080",
+                BingResolution.R1366x768 => "1366x768",
+                BingResolution.R1280x768 => "1280x768",
+                BingResolution.R1024x768 => "1024x768",
+                BingResolution.R800x600 => "800x600",
+                _ => resolution.ToString()
+            };
+        }
     }
 
     public interface IWallpaperService
@@ -221,7 +254,7 @@ namespace SpotlightGallery.Services
                     image.Headline,
                     image.Title,
                     image.Copyright,
-                    image.Url
+                    image.Url.Replace("UHD", bingResolution.ToResolutionString())
                 );
             }
             return new Wallpaper("", "", "", "");
@@ -234,7 +267,14 @@ namespace SpotlightGallery.Services
         {
             Wallpaper wallpaper = await GetWallpaperFromApi(currentSource);
 
-            string wallpaperPath = Path.Combine(dataDirectory, $"{wallpaper.title}.jpg");
+            string resolutionSuffix = currentSource switch
+            {
+                WallpaperSource.Spotlight => spotlightResolution.ToResolutionString(),
+                WallpaperSource.BingDaily => bingResolution.ToResolutionString(),
+                _ => ""
+            };
+
+            string wallpaperPath = Path.Combine(dataDirectory, $"{wallpaper.title}_{resolutionSuffix}.jpg");
 
             if (File.Exists(wallpaperPath))
             {
@@ -337,6 +377,7 @@ namespace SpotlightGallery.Services
             string json = File.ReadAllText(metadataPath);
             var options = new JsonSerializerOptions { WriteIndented = true };
             List<Wallpaper> metadata = JsonSerializer.Deserialize<List<Wallpaper>>(json, options) ?? new List<Wallpaper>();
+            metadata.RemoveAll(w => w.title == wallpaper.title && w.description == wallpaper.description);
             metadata.Add(wallpaper);
             string newJson = JsonSerializer.Serialize(metadata, options);
             File.WriteAllText(metadataPath, newJson);
@@ -358,7 +399,7 @@ namespace SpotlightGallery.Services
                 };
             }
 
-            string title = Path.GetFileNameWithoutExtension(wallpaperPath);
+            string title = Path.GetFileNameWithoutExtension(wallpaperPath).Split('_')[0];
 
             string json = File.ReadAllText(metadataPath);
             var wallpapers = JsonSerializer.Deserialize<List<Wallpaper>>(json) ?? new List<Wallpaper>();

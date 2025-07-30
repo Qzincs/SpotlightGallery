@@ -80,8 +80,13 @@ namespace SpotlightGallery.ViewModels
             }
             else if ((WallpaperSource)SourceIndex == WallpaperSource.BingDaily)
             {
+                ResolutionOptions.Add("3840x2160");
+                ResolutionOptions.Add("1920x1200");
                 ResolutionOptions.Add("1920x1080");
-                // 可扩展更多分辨率
+                ResolutionOptions.Add("1366x768");
+                ResolutionOptions.Add("1280x768");
+                ResolutionOptions.Add("1024x768");
+                ResolutionOptions.Add("800x600");
             }
         }
 
