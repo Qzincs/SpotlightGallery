@@ -4,6 +4,7 @@ using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Media;
 using SpotlightGallery.Helpers;
 using SpotlightGallery.Pages;
+using SpotlightGallery.Services;
 using System;
 using System.Runtime.InteropServices;
 using Windows.Graphics;
@@ -59,11 +60,23 @@ namespace SpotlightGallery
 
             startupWindow.Activate();
 
+            LoadSettings();
+        }
+
+        /// <summary>
+        /// 加载设置项
+        /// </summary>
+        private void LoadSettings()
+        {
             int themeIndex = SettingsHelper.GetSetting("AppTheme", 2);
             ThemeManager.ApplyTheme(themeIndex);
 
             // 监听系统主题变化，自动更新标题栏按钮颜色
             ThemeManager.RegisterSystemThemeListener(startupWindow);
+
+            int sourceIndex = SettingsHelper.GetSetting("Source", 0);
+            int resolutionIndex = SettingsHelper.GetSetting("Resolution", 0);
+            ServiceLocator.WallpaperService.ChangeSource((WallpaperSource)sourceIndex, resolutionIndex);
         }
 
         /// <summary>
