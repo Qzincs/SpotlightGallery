@@ -13,6 +13,8 @@ namespace SpotlightGallery.ViewModels
     {
         private readonly IWallpaperService wallpaperService = ServiceLocator.WallpaperService;
 
+        private bool isInitialized = false;
+
         private int appThemeIndex;
         /// <summary>
         /// 0 - 浅色, 1 - 深色, 2 - 系统默认
@@ -22,7 +24,7 @@ namespace SpotlightGallery.ViewModels
             get => appThemeIndex;
             set
             {
-                if (SetProperty(ref appThemeIndex, value))
+                if (SetProperty(ref appThemeIndex, value) && isInitialized)
                 {
                     SettingsHelper.SaveSetting("AppTheme", value);
                     ThemeManager.ApplyTheme(value);
@@ -42,7 +44,7 @@ namespace SpotlightGallery.ViewModels
             get => sourceIndex;
             set
             {
-                if (SetProperty(ref sourceIndex, value))
+                if (SetProperty(ref sourceIndex, value) && isInitialized)
                 {
                     SettingsHelper.SaveSetting("Source", value);
                     UpdateResolutionOptions();
@@ -62,7 +64,7 @@ namespace SpotlightGallery.ViewModels
             get => resolutionIndex;
             set
             {
-                if (SetProperty(ref resolutionIndex, value))
+                if (SetProperty(ref resolutionIndex, value) && isInitialized)
                 {
                     SettingsHelper.SaveSetting("Resolution", value);
                     wallpaperService.ChangeSource((WallpaperSource)SourceIndex, value);
@@ -93,14 +95,17 @@ namespace SpotlightGallery.ViewModels
         public SettingsViewModel()
         {
             LoadSettings();
+            isInitialized = true;
         }
 
         private void LoadSettings()
         {
             AppThemeIndex = SettingsHelper.GetSetting("AppTheme", 2);
+            // load source and resolution settings
             SourceIndex = SettingsHelper.GetSetting("Source", 0);
             ResolutionIndex = SettingsHelper.GetSetting("Resolution", 0);
             UpdateResolutionOptions();
+            wallpaperService.ChangeSource((WallpaperSource)SourceIndex, ResolutionIndex);
         }
     }
 }
