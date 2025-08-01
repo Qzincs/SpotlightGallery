@@ -68,18 +68,17 @@
                         <toolkit:SettingsExpander.HeaderIcon>
                             <FontIcon Glyph="&#xE895;" />
                         </toolkit:SettingsExpander.HeaderIcon>
-                        <ToggleSwitch/>
+                        <ToggleSwitch IsOn="{x:Bind ViewModel.IsAutoUpdateEnabled, Mode=TwoWay}" />
                         <toolkit:SettingsExpander.Items>
                             <toolkit:SettingsCard x:Uid="UpdateMode">
-                                <ComboBox SelectedIndex="0">
+                                <ComboBox SelectedIndex="{x:Bind ViewModel.UpdateModeIndex, Mode=TwoWay}">
                                     <ComboBoxItem x:Uid="Daily"/>
-                                    <ComboBoxItem x:Uid="Every12Hours"/>
                                     <ComboBoxItem x:Uid="AtSpecificTime"/>
                                 </ComboBox>
                             </toolkit:SettingsCard>
                             <toolkit:SettingsCard x:Uid="UpdateTime"
-                                                  Visibility="Visible">
-                                <TimePicker/>
+                                                  IsEnabled="{Binding IsUpdateTimeEnabled}">
+                                <TimePicker SelectedTime="{x:Bind ViewModel.UpdateTime, Mode=TwoWay}"/>
                             </toolkit:SettingsCard>
                         </toolkit:SettingsExpander.Items>
                     </toolkit:SettingsExpander>
