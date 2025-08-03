@@ -36,6 +36,7 @@ namespace SpotlightGallery
         public App()
         {
             InitializeComponent();
+            ServiceLocator.Initialize();
         }
 
         protected override void OnLaunched(Microsoft.UI.Xaml.LaunchActivatedEventArgs args)

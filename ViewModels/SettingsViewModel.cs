@@ -4,6 +4,8 @@ using System.Collections.ObjectModel;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Serilog;
+using Serilog.Context;
 using SpotlightGallery.Helpers;
 using SpotlightGallery.Services;
 using Windows.ApplicationModel.Background;
@@ -50,7 +52,6 @@ namespace SpotlightGallery.ViewModels
                     SettingsHelper.SaveSetting("Source", value);
                     UpdateResolutionOptions();
                     ResolutionIndex = 0;
-                    wallpaperService.ChangeSource((WallpaperSource)value, 0);
                 }
             }
         }
@@ -102,9 +103,12 @@ namespace SpotlightGallery.ViewModels
                 if (SetProperty(ref isAutoUpdateEnabled, value) && isInitialized)
                 {
                     SettingsHelper.SaveSetting("AutoUpdate", value);
-                    SettingsHelper.SaveSetting("NextUpdateTime", DateTimeOffset.Now.AddDays(1));
+
                     if (value)
                     {
+                        DateTimeOffset nextUpdateTime = CalculateNextUpdateTime();
+                        SettingsHelper.SaveSetting("NextUpdateTime", nextUpdateTime);
+
                         _ = RegisterWallpaperUpdateTaskAsync();
                     }
                     else
@@ -127,14 +131,7 @@ namespace SpotlightGallery.ViewModels
                 if (SetProperty(ref updateModeIndex, value) && isInitialized)
                 {
                     SettingsHelper.SaveSetting("UpdateMode", value);
-                    if (value == 0) // daily
-                    {
-                        SettingsHelper.SaveSetting("NextUpdateTime", new DateTimeOffset(DateTimeOffset.Now.Date.AddDays(1)));
-                    }
-                    else // at specific time
-                    {
-                        SettingsHelper.SaveSetting("NextUpdateTime", new DateTimeOffset(DateTimeOffset.Now.Date.AddDays(1)).Add(UpdateTime));
-                    }
+                    SettingsHelper.SaveSetting("NextUpdateTime", CalculateNextUpdateTime());
 
                     OnPropertyChanged(nameof(IsUpdateTimeEnabled));
                 }
@@ -155,52 +152,74 @@ namespace SpotlightGallery.ViewModels
                 if (SetProperty(ref updateTime, value) && isInitialized)
                 {
                     SettingsHelper.SaveSetting("UpdateTime", value);
-                    DateTimeOffset nextUpdateTime = DateTimeOffset.Now.Date.Add(updateTime);
-                    if (nextUpdateTime <= DateTimeOffset.Now)
-                    {
-                        nextUpdateTime = nextUpdateTime.AddDays(1);
-                    }
+                    DateTimeOffset nextUpdateTime = CalculateNextUpdateTime();
                     SettingsHelper.SaveSetting("NextUpdateTime", nextUpdateTime);
                 }
             }
         }
 
+        private DateTimeOffset CalculateNextUpdateTime()
+        {
+            if (UpdateModeIndex == 0) // daily
+            {
+                return DateTimeOffset.Now.Date.AddDays(1);
+            }
+            else // at specific time
+            {
+                var nextUpdateTime = DateTimeOffset.Now.Date.Add(UpdateTime);
+                if (nextUpdateTime <= DateTimeOffset.Now)
+                {
+                    nextUpdateTime = nextUpdateTime.AddDays(1);
+                }
+                return nextUpdateTime;
+            }
+        }
+
         public async Task RegisterWallpaperUpdateTaskAsync()
         {
-            try
+            using (LogContext.PushProperty("Module", nameof(SettingsViewModel)))
             {
-                foreach (var task in BackgroundTaskRegistration.AllTasks)
+                try
                 {
-                    if (task.Value.Name == "WallpaperUpdateTask")
+                    foreach (var task in BackgroundTaskRegistration.AllTasks)
                     {
-                        task.Value.Unregister(true);
+                        if (task.Value.Name == "WallpaperUpdateTask")
+                        {
+                            task.Value.Unregister(true);
+                        }
+                    }
+
+                    var status = await BackgroundExecutionManager.RequestAccessAsync();
+                    if (status == BackgroundAccessStatus.DeniedByUser || status == BackgroundAccessStatus.DeniedBySystemPolicy)
+                        return;
+
+                    var builder = new BackgroundTaskBuilder
+                    {
+                        Name = "WallpaperUpdateTask",
+                    };
+                    builder.SetTaskEntryPointClsid(typeof(BackgroundTasks.WallpaperUpdateTask).GUID);
+
+                    // run background task every 4 hours to check next update time
+                    builder.SetTrigger(new TimeTrigger(240, false));
+
+                    builder.Register();
+
+                    bool isRegistered = BackgroundTaskRegistration.AllTasks
+                        .Any(t => t.Value.Name == "WallpaperUpdateTask");
+
+                    if (isRegistered)
+                    {
+                        Log.Information("WallpaperUpdateTask registered successfully.");
+                    }
+                    else
+                    {
+                        Log.Error("Failed to register WallpaperUpdateTask.");
                     }
                 }
-
-                var status = await BackgroundExecutionManager.RequestAccessAsync();
-                if (status == BackgroundAccessStatus.DeniedByUser || status == BackgroundAccessStatus.DeniedBySystemPolicy)
-                    return;
-
-                var builder = new BackgroundTaskBuilder
+                catch (Exception ex)
                 {
-                    Name = "WallpaperUpdateTask",
-                };
-                builder.SetTaskEntryPointClsid(typeof(BackgroundTasks.WallpaperUpdateTask).GUID);
-
-                // run background task every 4 hours to check next update time
-                builder.SetTrigger(new TimeTrigger(240, false));
-
-                builder.Register();
-
-                bool isRegistered = BackgroundTaskRegistration.AllTasks
-                    .Any(t => t.Value.Name == "WallpaperUpdateTask");
-                System.Diagnostics.Debug.WriteLine(isRegistered
-                    ? "WallpaperUpdateTask registered successfully."
-                    : "Failed to register WallpaperUpdateTask.");
-            }
-            catch (Exception ex)
-            {
-                System.Diagnostics.Debug.WriteLine($"RegisterWallpaperUpdateTaskAsync Exception: {ex}");
+                    Log.Error(ex, "RegisterWallpaperUpdateTaskAsync Exception: {Message}", ex.Message);
+                }
             }
         }
 
@@ -212,7 +231,28 @@ namespace SpotlightGallery.ViewModels
                 if (task.Value.Name == "WallpaperUpdateTask")
                 {
                     task.Value.Unregister(true);
+                    using (LogContext.PushProperty("Module", nameof(SettingsViewModel)))
+                    {
+                        Log.Information("WallpaperUpdateTask unregistered successfully.");
+                    }
                     break;
+                }
+            }
+        }
+
+        // 新增属性
+        private bool isDebugLogEnabled;
+        public bool IsDebugLogEnabled
+        {
+            get => isDebugLogEnabled;
+            set
+            {
+                if (SetProperty(ref isDebugLogEnabled, value) && isInitialized)
+                {
+                    SettingsHelper.SaveSetting("DebugLogEnabled", value);
+                    ServiceLocator.LogLevelSwitch.MinimumLevel = value
+                        ? Serilog.Events.LogEventLevel.Debug
+                        : Serilog.Events.LogEventLevel.Information;
                 }
             }
         }
@@ -235,6 +275,7 @@ namespace SpotlightGallery.ViewModels
             IsAutoUpdateEnabled = SettingsHelper.GetSetting("AutoUpdate", false);
             UpdateModeIndex = SettingsHelper.GetSetting("UpdateMode", 0);
             UpdateTime = SettingsHelper.GetSetting("UpdateTime", TimeSpan.FromHours(12));
+            IsDebugLogEnabled = SettingsHelper.GetSetting("DebugLogEnabled", false);
         }
     }
 }

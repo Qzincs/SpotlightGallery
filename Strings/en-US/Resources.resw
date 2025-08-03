@@ -248,4 +248,10 @@
   <data name="CopyrightNotice.Description" xml:space="preserve">
     <value>All images displayed in this app are for personal wallpaper use only, their copyrights belong to original authors or copyright holders</value>
   </data>
+  <data name="DebugLog.Header" xml:space="preserve">
+    <value>Debug Log</value>
+  </data>
+  <data name="DebugLog.Description" xml:space="preserve">
+    <value>Enable to record detailed debug logs for troubleshooting</value>
+  </data>
 </root>
