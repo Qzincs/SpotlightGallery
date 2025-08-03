@@ -102,9 +102,12 @@ namespace SpotlightGallery.ViewModels
                 if (SetProperty(ref isAutoUpdateEnabled, value) && isInitialized)
                 {
                     SettingsHelper.SaveSetting("AutoUpdate", value);
-                    SettingsHelper.SaveSetting("NextUpdateTime", DateTimeOffset.Now.AddDays(1));
+
                     if (value)
                     {
+                        DateTimeOffset nextUpdateTime = CalculateNextUpdateTime();
+                        SettingsHelper.SaveSetting("NextUpdateTime", nextUpdateTime);
+
                         _ = RegisterWallpaperUpdateTaskAsync();
                     }
                     else
@@ -127,14 +130,7 @@ namespace SpotlightGallery.ViewModels
                 if (SetProperty(ref updateModeIndex, value) && isInitialized)
                 {
                     SettingsHelper.SaveSetting("UpdateMode", value);
-                    if (value == 0) // daily
-                    {
-                        SettingsHelper.SaveSetting("NextUpdateTime", new DateTimeOffset(DateTimeOffset.Now.Date.AddDays(1)));
-                    }
-                    else // at specific time
-                    {
-                        SettingsHelper.SaveSetting("NextUpdateTime", new DateTimeOffset(DateTimeOffset.Now.Date.AddDays(1)).Add(UpdateTime));
-                    }
+                    SettingsHelper.SaveSetting("NextUpdateTime", CalculateNextUpdateTime());
 
                     OnPropertyChanged(nameof(IsUpdateTimeEnabled));
                 }
@@ -155,13 +151,26 @@ namespace SpotlightGallery.ViewModels
                 if (SetProperty(ref updateTime, value) && isInitialized)
                 {
                     SettingsHelper.SaveSetting("UpdateTime", value);
-                    DateTimeOffset nextUpdateTime = DateTimeOffset.Now.Date.Add(updateTime);
-                    if (nextUpdateTime <= DateTimeOffset.Now)
-                    {
-                        nextUpdateTime = nextUpdateTime.AddDays(1);
-                    }
+                    DateTimeOffset nextUpdateTime = CalculateNextUpdateTime();
                     SettingsHelper.SaveSetting("NextUpdateTime", nextUpdateTime);
                 }
+            }
+        }
+
+        private DateTimeOffset CalculateNextUpdateTime()
+        {
+            if (UpdateModeIndex == 0) // daily
+            {
+                return DateTimeOffset.Now.Date.AddDays(1);
+            }
+            else // at specific time
+            {
+                var nextUpdateTime = DateTimeOffset.Now.Date.Add(UpdateTime);
+                if (nextUpdateTime <= DateTimeOffset.Now)
+                {
+                    nextUpdateTime = nextUpdateTime.AddDays(1);
+                }
+                return nextUpdateTime;
             }
         }
 
