@@ -4,6 +4,8 @@ using System.Collections.ObjectModel;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Serilog;
+using Serilog.Context;
 using SpotlightGallery.Helpers;
 using SpotlightGallery.Services;
 using Windows.ApplicationModel.Background;
@@ -176,40 +178,49 @@ namespace SpotlightGallery.ViewModels
 
         public async Task RegisterWallpaperUpdateTaskAsync()
         {
-            try
+            using (LogContext.PushProperty("Module", nameof(SettingsViewModel)))
             {
-                foreach (var task in BackgroundTaskRegistration.AllTasks)
+                try
                 {
-                    if (task.Value.Name == "WallpaperUpdateTask")
+                    foreach (var task in BackgroundTaskRegistration.AllTasks)
                     {
-                        task.Value.Unregister(true);
+                        if (task.Value.Name == "WallpaperUpdateTask")
+                        {
+                            task.Value.Unregister(true);
+                        }
+                    }
+
+                    var status = await BackgroundExecutionManager.RequestAccessAsync();
+                    if (status == BackgroundAccessStatus.DeniedByUser || status == BackgroundAccessStatus.DeniedBySystemPolicy)
+                        return;
+
+                    var builder = new BackgroundTaskBuilder
+                    {
+                        Name = "WallpaperUpdateTask",
+                    };
+                    builder.SetTaskEntryPointClsid(typeof(BackgroundTasks.WallpaperUpdateTask).GUID);
+
+                    // run background task every 4 hours to check next update time
+                    builder.SetTrigger(new TimeTrigger(240, false));
+
+                    builder.Register();
+
+                    bool isRegistered = BackgroundTaskRegistration.AllTasks
+                        .Any(t => t.Value.Name == "WallpaperUpdateTask");
+
+                    if (isRegistered)
+                    {
+                        Log.Information("WallpaperUpdateTask registered successfully.");
+                    }
+                    else
+                    {
+                        Log.Error("Failed to register WallpaperUpdateTask.");
                     }
                 }
-
-                var status = await BackgroundExecutionManager.RequestAccessAsync();
-                if (status == BackgroundAccessStatus.DeniedByUser || status == BackgroundAccessStatus.DeniedBySystemPolicy)
-                    return;
-
-                var builder = new BackgroundTaskBuilder
+                catch (Exception ex)
                 {
-                    Name = "WallpaperUpdateTask",
-                };
-                builder.SetTaskEntryPointClsid(typeof(BackgroundTasks.WallpaperUpdateTask).GUID);
-
-                // run background task every 4 hours to check next update time
-                builder.SetTrigger(new TimeTrigger(240, false));
-
-                builder.Register();
-
-                bool isRegistered = BackgroundTaskRegistration.AllTasks
-                    .Any(t => t.Value.Name == "WallpaperUpdateTask");
-                System.Diagnostics.Debug.WriteLine(isRegistered
-                    ? "WallpaperUpdateTask registered successfully."
-                    : "Failed to register WallpaperUpdateTask.");
-            }
-            catch (Exception ex)
-            {
-                System.Diagnostics.Debug.WriteLine($"RegisterWallpaperUpdateTaskAsync Exception: {ex}");
+                    Log.Error(ex, "RegisterWallpaperUpdateTaskAsync Exception: {Message}", ex.Message);
+                }
             }
         }
 
@@ -221,6 +232,10 @@ namespace SpotlightGallery.ViewModels
                 if (task.Value.Name == "WallpaperUpdateTask")
                 {
                     task.Value.Unregister(true);
+                    using (LogContext.PushProperty("Module", nameof(SettingsViewModel)))
+                    {
+                        Log.Information("WallpaperUpdateTask unregistered successfully.");
+                    }
                     break;
                 }
             }
