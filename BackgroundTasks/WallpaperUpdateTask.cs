@@ -77,6 +77,7 @@ namespace SpotlightGallery.BackgroundTasks
 
                         if (success)
                         {
+                            Log.Information("Wallpaper updated successfully: {WallpaperPath}", wallpaper.path);
                             // Toast notifications only accept images from three URI schemes: http(s)://, ms-appx:///, and ms-appdata:///.
                             // For http/https images, there is a file size limit (3 MB on normal connections, 1 MB on metered connections; previously 200 KB).
                             // Therefore, we use a URL and reduce the image resolution to ensure the image size meets the requirement.

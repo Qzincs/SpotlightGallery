@@ -172,19 +172,20 @@ namespace SpotlightGallery.ViewModels
         /// </summary>
         public async void ApplyWallpaperAsync()
         {
-            bool result = await wallpaperService.SetWallpaperAsync(wallpaper.path);
+            using (LogContext.PushProperty("Module", nameof(HomePageViewModel)))
+            {
+                bool result = await wallpaperService.SetWallpaperAsync(wallpaper.path);
 
-            if (result)
-            {
-                ShowInfoBar("壁纸设置成功", InfoBarSeverity.Success);
-            }
-            else
-            {
-                using (LogContext.PushProperty("Module", nameof(HomePageViewModel)))
+                if (result)
+                {
+                    Log.Information("Wallpaper applied successfully: {WallpaperPath}", wallpaper.path);
+                    ShowInfoBar("壁纸设置成功", InfoBarSeverity.Success);
+                }
+                else
                 {
                     Log.Warning("Failed to apply wallpaper: {WallpaperPath}", wallpaper.path);
+                    ShowInfoBar("壁纸设置失败", InfoBarSeverity.Error);
                 }
-                ShowInfoBar("壁纸设置失败", InfoBarSeverity.Error);
             }
         }
 
