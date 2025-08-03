@@ -2,6 +2,8 @@ using System;
 using System.Runtime.InteropServices;
 using Windows.ApplicationModel.Background;
 using Windows.UI.Notifications;
+using Windows.Data.Xml.Dom;
+using SpotlightGallery.Services;
 
 namespace SpotlightGallery.BackgroundTasks
 {
@@ -48,18 +50,89 @@ namespace SpotlightGallery.BackgroundTasks
             // Wire the cancellation handler.
             taskInstance.Canceled += this.OnCanceled;
 
-            // Set the progress to indicate this task has started
-            taskInstance.Progress = 10;
+            DateTimeOffset now = DateTimeOffset.Now;
+            DateTimeOffset nextUpdateTime = SettingsHelper.GetSetting("NextUpdateTime", DateTimeOffset.Now);
 
-            // Create the toast notification content
-            var toastXml = ToastNotificationManager.GetTemplateContent(ToastTemplateType.ToastText01);
-            var toastTextElements = toastXml.GetElementsByTagName("text");
-            toastTextElements[0].AppendChild(toastXml.CreateTextNode("C# Background task executed"));
+            // Check if the current time is past the next update time
+            if (now > nextUpdateTime)
+            {
+                try
+                {
+                    var wallpaperService = ServiceLocator.WallpaperService;
+                    // Load the settings for the wallpaper source and resolution
+                    int sourceIndex = SettingsHelper.GetSetting("Source", 0);
+                    int resolutionIndex = SettingsHelper.GetSetting("Resolution", 0);
+                    wallpaperService.ChangeSource((WallpaperSource)sourceIndex, resolutionIndex);
 
-            // Create the toast notification
+                    var wallpaper = wallpaperService.DownloadWallpaperAsync().GetAwaiter().GetResult();
+                    bool success = wallpaperService.SetWallpaperAsync(wallpaper.path).GetAwaiter().GetResult();
+
+                    if (success)
+                    {
+                        // Toast notifications only accept images from three URI schemes: http(s)://, ms-appx:///, and ms-appdata:///.
+                        // For http/https images, there is a file size limit (3 MB on normal connections, 1 MB on metered connections; previously 200 KB).
+                        // Therefore, we use a URL and reduce the image resolution to ensure the image size meets the requirement.
+                        string url = wallpaper.url.Replace("_UHD", "_800x600");
+                        ShowToast("Wallpaper Updated", $"Today's wallpaper is {wallpaper.title}.", url);
+
+                        // Update the next update time based on the update mode
+                        int updateModeIndex = SettingsHelper.GetSetting("UpdateMode", 0);
+                        if (updateModeIndex == 0) // daily
+                        {
+                            nextUpdateTime = now.Date.AddDays(1);
+                        }
+                        else // at specific time
+                        {
+                            TimeSpan updateTime = SettingsHelper.GetSetting("UpdateTime", TimeSpan.FromHours(12));
+                            nextUpdateTime = now.Date.Add(updateTime);
+                            if (nextUpdateTime <= now)
+                            {
+                                nextUpdateTime = nextUpdateTime.AddDays(1);
+                            }
+                        }
+                        SettingsHelper.SaveSetting("NextUpdateTime", nextUpdateTime);
+                    }
+                    else
+                    {
+                        ShowToast("Wallpaper Update Failed", "Please check your network connection.");
+                    }
+                }
+                catch (Exception ex)
+                {
+                    System.Diagnostics.Debug.WriteLine($"WallpaperUpdateTask Exception: {ex}");
+                    ShowToast("Wallpaper Update Failed", "Please check your network connection.");
+                }
+            }
+        }
+
+        private void ShowToast(string title, string message, string? imageUrl = null)
+        {
+            var toastXml = new XmlDocument();
+            toastXml.LoadXml("<toast><visual><binding template=\"ToastGeneric\"></binding></visual></toast>");
+
+            var binding = toastXml.SelectSingleNode("/toast/visual/binding");
+
+            var titleElement = toastXml.CreateElement("text");
+            titleElement.InnerText = title;
+            binding.AppendChild(titleElement);
+
+            var messageElement = toastXml.CreateElement("text");
+            messageElement.InnerText = message;
+            binding.AppendChild(messageElement);
+
+            if (!string.IsNullOrEmpty(imageUrl))
+            {
+                var imageElement = toastXml.CreateElement("image");
+                var placementAttr = toastXml.CreateAttribute("placement");
+                placementAttr.Value = "hero";
+                imageElement.Attributes.SetNamedItem(placementAttr);
+                var srcAttr = toastXml.CreateAttribute("src");
+                srcAttr.Value = imageUrl;
+                imageElement.Attributes.SetNamedItem(srcAttr);
+                binding.AppendChild(imageElement);
+            }
+
             var toast = new ToastNotification(toastXml);
-
-            // Show the toast notification
             ToastNotificationManager.CreateToastNotifier().Show(toast);
         }
 
