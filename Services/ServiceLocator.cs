@@ -25,6 +25,7 @@ namespace SpotlightGallery.Services
             LogLevelSwitch.MinimumLevel = isDebugLogEnabled ? LogEventLevel.Debug : LogEventLevel.Information;
             Log.Logger = new LoggerConfiguration()
                 .MinimumLevel.ControlledBy(LogLevelSwitch)
+                .Enrich.FromLogContext()
                 .WriteTo.File(
                     logFilePath,
                     rollingInterval: RollingInterval.Day,
