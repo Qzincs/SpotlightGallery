@@ -246,4 +246,10 @@
   <data name="CopyrightNotice.Description" xml:space="preserve">
     <value>本应用展示的所有图像仅供个人壁纸使用，其版权归原作者或版权所有者所有</value>
   </data>
+  <data name="DebugLog.Header" xml:space="preserve">
+    <value>调试日志</value>
+  </data>
+  <data name="DebugLog.Description" xml:space="preserve">
+    <value>记录更详细日志，便于问题排查</value>
+  </data>
 </root>

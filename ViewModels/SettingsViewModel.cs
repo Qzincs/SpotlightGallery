@@ -241,6 +241,23 @@ namespace SpotlightGallery.ViewModels
             }
         }
 
+        // 新增属性
+        private bool isDebugLogEnabled;
+        public bool IsDebugLogEnabled
+        {
+            get => isDebugLogEnabled;
+            set
+            {
+                if (SetProperty(ref isDebugLogEnabled, value) && isInitialized)
+                {
+                    SettingsHelper.SaveSetting("DebugLogEnabled", value);
+                    ServiceLocator.LogLevelSwitch.MinimumLevel = value
+                        ? Serilog.Events.LogEventLevel.Debug
+                        : Serilog.Events.LogEventLevel.Information;
+                }
+            }
+        }
+
         public SettingsViewModel()
         {
             LoadSettings();
@@ -259,6 +276,7 @@ namespace SpotlightGallery.ViewModels
             IsAutoUpdateEnabled = SettingsHelper.GetSetting("AutoUpdate", false);
             UpdateModeIndex = SettingsHelper.GetSetting("UpdateMode", 0);
             UpdateTime = SettingsHelper.GetSetting("UpdateTime", TimeSpan.FromHours(12));
+            IsDebugLogEnabled = SettingsHelper.GetSetting("DebugLogEnabled", false);
         }
     }
 }

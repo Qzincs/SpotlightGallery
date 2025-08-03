@@ -170,6 +170,12 @@
                              NavigateUri="https://github.com/Qzincs/SpotlightGallery/issues"/>
                         </Grid>
                     </toolkit:SettingsCard>
+                    <toolkit:SettingsCard x:Uid="DebugLog">
+                        <toolkit:SettingsCard.HeaderIcon>
+                            <FontIcon Glyph="&#xEBE8;"/>
+                        </toolkit:SettingsCard.HeaderIcon>
+                        <ToggleSwitch IsOn="{x:Bind ViewModel.IsDebugLogEnabled, Mode=TwoWay}" />
+                    </toolkit:SettingsCard>
                     <toolkit:SettingsCard x:Uid="CopyrightNotice">
                         <toolkit:SettingsCard.HeaderIcon>
                             <FontIcon Glyph="&#xE946;" />
