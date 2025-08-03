@@ -52,7 +52,6 @@ namespace SpotlightGallery.ViewModels
                     SettingsHelper.SaveSetting("Source", value);
                     UpdateResolutionOptions();
                     ResolutionIndex = 0;
-                    wallpaperService.ChangeSource((WallpaperSource)value, 0);
                 }
             }
         }
