@@ -74,7 +74,7 @@ namespace SpotlightGallery.Helpers
         // 当系统主题变化时，自动更新标题栏按钮颜色
         public static void RegisterSystemThemeListener(Window window)
         {
-            if (uiSettings == null)
+            if (uiSettings != null)
             {
                 uiSettings.ColorValuesChanged += (s, e) =>
                 {
