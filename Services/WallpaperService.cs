@@ -475,7 +475,7 @@ namespace SpotlightGallery.Services
                 if (string.IsNullOrEmpty(autoSaveDirectory) || !Directory.Exists(autoSaveDirectory))
                 {
                     Log.Error("Auto save directory is not set or does not exist: {AutoSaveDirectory}", autoSaveDirectory);
-                    ShowToast("自动保存失败", "自动保存目录未设置或不存在。");
+                    Helpers.ToastHelper.ShowToast("自动保存失败", "自动保存目录未设置或不存在。");
                     return false;
                 }
 
@@ -499,29 +499,10 @@ namespace SpotlightGallery.Services
                 catch (Exception ex)
                 {
                     Log.Error(ex, "Failed to save wallpaper to auto save directory: {Message}", ex.Message);
-                    ShowToast("自动保存失败", "保存壁纸时发生错误：" + ex.Message);
+                    Helpers.ToastHelper.ShowToast("自动保存失败", "保存壁纸时发生错误：" + ex.Message);
                     return false;
                 }
             }
-        }
-        
-        private void ShowToast(string title, string message)
-        {
-            var toastXml = new Windows.Data.Xml.Dom.XmlDocument();
-            toastXml.LoadXml("<toast><visual><binding template=\"ToastGeneric\"></binding></visual></toast>");
-
-            var binding = toastXml.SelectSingleNode("/toast/visual/binding");
-
-            var titleElement = toastXml.CreateElement("text");
-            titleElement.InnerText = title;
-            binding.AppendChild(titleElement);
-
-            var messageElement = toastXml.CreateElement("text");
-            messageElement.InnerText = message;
-            binding.AppendChild(messageElement);
-
-            var toast = new Windows.UI.Notifications.ToastNotification(toastXml);
-            Windows.UI.Notifications.ToastNotificationManager.CreateToastNotifier().Show(toast);
         }
     }
 }
