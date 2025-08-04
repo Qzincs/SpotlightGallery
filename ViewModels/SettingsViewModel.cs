@@ -254,6 +254,7 @@ namespace SpotlightGallery.ViewModels
                 if (SetProperty(ref isAutoSaveEnabled, value) && isInitialized)
                 {
                     SettingsHelper.SaveSetting("AutoSave", value);
+                    ServiceLocator.WallpaperService.IsAutoSaveEnabled = value;
                 }
             }
         }
@@ -354,7 +355,6 @@ namespace SpotlightGallery.ViewModels
             SourceIndex = SettingsHelper.GetSetting("Source", 0);
             ResolutionIndex = SettingsHelper.GetSetting("Resolution", 0);
             UpdateResolutionOptions();
-            wallpaperService.ChangeSource((WallpaperSource)SourceIndex, ResolutionIndex);
             // load auto update settings
             IsAutoUpdateEnabled = SettingsHelper.GetSetting("AutoUpdate", false);
             UpdateModeIndex = SettingsHelper.GetSetting("UpdateMode", 0);
@@ -362,7 +362,6 @@ namespace SpotlightGallery.ViewModels
             // load auto save settings
             IsAutoSaveEnabled = SettingsHelper.GetSetting("AutoSave", false);
             AutoSaveDirectory = SettingsHelper.GetSetting("AutoSaveDirectory", Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.MyPictures), "SpotlightGallery"));
-            ServiceLocator.WallpaperService.AutoSaveDirectory = AutoSaveDirectory;
             // load debug log settings
             IsDebugLogEnabled = SettingsHelper.GetSetting("DebugLogEnabled", false);
         }

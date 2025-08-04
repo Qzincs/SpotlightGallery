@@ -74,6 +74,7 @@ namespace SpotlightGallery.Services
     {
         WallpaperSource CurrentSource { get; }
         int CurrentResolutionIndex { get; }
+        bool IsAutoSaveEnabled { get; set; }
         string AutoSaveDirectory { get; set; }
 
         /// <summary>
@@ -111,6 +112,7 @@ namespace SpotlightGallery.Services
     class WallpaperService : IWallpaperService
     {
         private readonly string dataDirectory = ApplicationData.Current.LocalFolder.Path;
+        public bool IsAutoSaveEnabled { get; set; }
         private string autoSaveDirectory = string.Empty;
         public string AutoSaveDirectory
         {

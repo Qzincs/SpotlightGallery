@@ -82,14 +82,6 @@ namespace SpotlightGallery
 
             // 监听系统主题变化，自动更新标题栏按钮颜色
             ThemeManager.RegisterSystemThemeListener(startupWindow);
-
-            int sourceIndex = SettingsHelper.GetSetting("Source", 0);
-            int resolutionIndex = SettingsHelper.GetSetting("Resolution", 0);
-            ServiceLocator.WallpaperService.ChangeSource((WallpaperSource)sourceIndex, resolutionIndex);
-
-            string autoSaveDirectory = SettingsHelper.GetSetting("AutoSaveDirectory", 
-                System.IO.Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.MyPictures), "SpotlightGallery"));
-            ServiceLocator.WallpaperService.AutoSaveDirectory = autoSaveDirectory;
         }
 
         /// <summary>
