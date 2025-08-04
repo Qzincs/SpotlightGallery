@@ -59,9 +59,17 @@ namespace SpotlightGallery
             // 创建窗口过程钩子，处理窗口大小调整
             windowHook = new WindowProcedureHook(startupWindow, WndProc);
 
+            // 注册窗口关闭事件
+            startupWindow.Closed += StartupWindow_Closed;
+
             startupWindow.Activate();
 
             LoadSettings();
+        }
+        
+        private void StartupWindow_Closed(object sender, WindowEventArgs e)
+        {
+            ServiceLocator.WallpaperService.CleanupOldWallpapers();
         }
 
         /// <summary>
@@ -78,6 +86,10 @@ namespace SpotlightGallery
             int sourceIndex = SettingsHelper.GetSetting("Source", 0);
             int resolutionIndex = SettingsHelper.GetSetting("Resolution", 0);
             ServiceLocator.WallpaperService.ChangeSource((WallpaperSource)sourceIndex, resolutionIndex);
+
+            string autoSaveDirectory = SettingsHelper.GetSetting("AutoSaveDirectory", 
+                System.IO.Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.MyPictures), "SpotlightGallery"));
+            ServiceLocator.WallpaperService.AutoSaveDirectory = autoSaveDirectory;
         }
 
         /// <summary>

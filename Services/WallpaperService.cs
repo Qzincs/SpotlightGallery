@@ -101,6 +101,11 @@ namespace SpotlightGallery.Services
         /// <param name="source">壁纸来源</param>
         /// <param name="resolutionIndex">分辨率索引</param>
         void ChangeSource(WallpaperSource source, int resolutionIndex);
+
+        /// <summary>
+        /// 清理旧壁纸文件
+        /// </summary>
+        void CleanupOldWallpapers();
     }
 
     class WallpaperService : IWallpaperService
@@ -504,5 +509,27 @@ namespace SpotlightGallery.Services
                 }
             }
         }
+
+        public void CleanupOldWallpapers()
+        {
+            try
+            {
+                var currentWallpaperPath = GetCurrentWallpaper().path;
+                var files = Directory.GetFiles(dataDirectory, "*.jpg");
+                foreach (var file in files)
+                {
+                    if (!string.Equals(file, currentWallpaperPath, StringComparison.OrdinalIgnoreCase))
+                    {
+                        File.Delete(file);
+                        Log.Information("Deleted old wallpaper file: {FilePath}", file);
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                Log.Warning(ex, "Failed to cleanup old wallpapers: {Message}", ex.Message);
+            }
+        }
+
     }
 }

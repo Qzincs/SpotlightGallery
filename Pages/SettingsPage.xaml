@@ -104,16 +104,7 @@
                                             Command="{x:Bind ViewModel.ChangeAutoSaveDirectoryCommand}"/>
                                 </Grid>
                             </toolkit:SettingsCard>
-                            <toolkit:SettingsCard x:Uid="MaxStorage">
-                                <ComboBox SelectedIndex="0">
-                                    <ComboBoxItem Content="100MB"/>
-                                    <ComboBoxItem Content="200MB"/>
-                                    <ComboBoxItem Content="500MB"/>
-                                    <ComboBoxItem x:Uid="Unlimited"/>
-                                </ComboBox>
-                            </toolkit:SettingsCard>
                         </toolkit:SettingsExpander.Items>
-
                     </toolkit:SettingsExpander>
 
                     <TextBlock Style="{StaticResource SettingsSectionHeaderTextBlockStyle}"
