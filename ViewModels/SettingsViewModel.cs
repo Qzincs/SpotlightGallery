@@ -267,6 +267,7 @@ namespace SpotlightGallery.ViewModels
                 if (SetProperty(ref autoSaveDirectory, value) && isInitialized)
                 {
                     SettingsHelper.SaveSetting("AutoSaveDirectory", value);
+                    ServiceLocator.WallpaperService.AutoSaveDirectory = value;
                 }
             }
         }
@@ -361,6 +362,8 @@ namespace SpotlightGallery.ViewModels
             // load auto save settings
             IsAutoSaveEnabled = SettingsHelper.GetSetting("AutoSave", false);
             AutoSaveDirectory = SettingsHelper.GetSetting("AutoSaveDirectory", Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.MyPictures), "SpotlightGallery"));
+            ServiceLocator.WallpaperService.AutoSaveDirectory = AutoSaveDirectory;
+            // load debug log settings
             IsDebugLogEnabled = SettingsHelper.GetSetting("DebugLogEnabled", false);
         }
     }
