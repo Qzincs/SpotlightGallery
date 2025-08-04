@@ -86,9 +86,9 @@
                         <toolkit:SettingsExpander.HeaderIcon>
                             <FontIcon Glyph="&#xE74E;" />
                         </toolkit:SettingsExpander.HeaderIcon>
-                        <ToggleSwitch/>
+                        <ToggleSwitch IsOn="{x:Bind ViewModel.IsAutoSaveEnabled, Mode=TwoWay}"/>
                         <toolkit:SettingsExpander.Items>
-                            <toolkit:SettingsCard Header="C:\User\Pictures\SpotlightGallery">
+                            <toolkit:SettingsCard Header="{Binding AutoSaveDirectory}">
                                 <Grid>
                                     <Grid.ColumnDefinitions>
                                         <ColumnDefinition Width="*"/>
@@ -96,9 +96,12 @@
                                     </Grid.ColumnDefinitions>
                                     <Button Grid.Column="0"
                                             Margin="0,0,8,0"
-                                            x:Uid="OpenFolder"/>
+                                            x:Uid="OpenFolder"
+                                            Command="{x:Bind ViewModel.OpenAutoSaveDirectoryCommand}"
+                                            />
                                     <Button Grid.Column="1"
-                                            x:Uid="Change"/>
+                                            x:Uid="Change"
+                                            Command="{x:Bind ViewModel.ChangeAutoSaveDirectoryCommand}"/>
                                 </Grid>
                             </toolkit:SettingsCard>
                             <toolkit:SettingsCard x:Uid="MaxStorage">
