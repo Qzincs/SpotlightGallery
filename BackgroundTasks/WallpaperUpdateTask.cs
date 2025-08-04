@@ -70,6 +70,8 @@ namespace SpotlightGallery.BackgroundTasks
                         // Load the settings for the wallpaper source and resolution
                         int sourceIndex = SettingsHelper.GetSetting("Source", 0);
                         int resolutionIndex = SettingsHelper.GetSetting("Resolution", 0);
+                        wallpaperService.AutoSaveDirectory = SettingsHelper.GetSetting("AutoSaveDirectory",
+                            System.IO.Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.MyPictures), "SpotlightGallery"));
                         wallpaperService.ChangeSource((WallpaperSource)sourceIndex, resolutionIndex);
 
                         var wallpaper = wallpaperService.DownloadWallpaperAsync().GetAwaiter().GetResult();
