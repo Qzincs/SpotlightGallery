@@ -475,15 +475,20 @@ namespace SpotlightGallery.Services
             };
         }
 
-        private bool SaveWallpaperToAutoSaveDirectory(string wallpaperPath)
+        private void SaveWallpaperToAutoSaveDirectory(string wallpaperPath)
         {
             using (LogContext.PushProperty("Module", nameof(WallpaperService)))
             {
+                if (!IsAutoSaveEnabled)
+                {
+                    return;
+                }
+
                 if (string.IsNullOrEmpty(autoSaveDirectory) || !Directory.Exists(autoSaveDirectory))
                 {
                     Log.Error("Auto save directory is not set or does not exist: {AutoSaveDirectory}", autoSaveDirectory);
                     Helpers.ToastHelper.ShowToast("自动保存失败", "自动保存目录未设置或不存在。");
-                    return false;
+                    return;
                 }
 
                 string fileName = Path.GetFileName(wallpaperPath);
@@ -492,7 +497,7 @@ namespace SpotlightGallery.Services
                 if (File.Exists(filePath))
                 {
                     Log.Information("Wallpaper already exists in auto save directory: {FilePath}", filePath);
-                    return true;
+                    return;
                 }
 
                 try
@@ -501,37 +506,37 @@ namespace SpotlightGallery.Services
                     File.WriteAllBytes(filePath, fileData);
 
                     Log.Information("Wallpaper saved to auto save directory: {FilePath}", filePath);
-                    return true;
                 }
                 catch (Exception ex)
                 {
                     Log.Error(ex, "Failed to save wallpaper to auto save directory: {Message}", ex.Message);
                     Helpers.ToastHelper.ShowToast("自动保存失败", "保存壁纸时发生错误：" + ex.Message);
-                    return false;
                 }
             }
         }
 
         public void CleanupOldWallpapers()
         {
-            try
+            using (LogContext.PushProperty("Module", nameof(WallpaperService)))
             {
-                var currentWallpaperPath = GetCurrentWallpaper().path;
-                var files = Directory.GetFiles(dataDirectory, "*.jpg");
-                foreach (var file in files)
+                try
                 {
-                    if (!string.Equals(file, currentWallpaperPath, StringComparison.OrdinalIgnoreCase))
+                    var currentWallpaperPath = GetCurrentWallpaper().path;
+                    var files = Directory.GetFiles(dataDirectory, "*.jpg");
+                    foreach (var file in files)
                     {
-                        File.Delete(file);
-                        Log.Information("Deleted old wallpaper file: {FilePath}", file);
+                        if (!string.Equals(file, currentWallpaperPath, StringComparison.OrdinalIgnoreCase))
+                        {
+                            File.Delete(file);
+                            Log.Information("Deleted old wallpaper file: {FilePath}", file);
+                        }
                     }
                 }
-            }
-            catch (Exception ex)
-            {
-                Log.Warning(ex, "Failed to cleanup old wallpapers: {Message}", ex.Message);
+                catch (Exception ex)
+                {
+                    Log.Warning(ex, "Failed to cleanup old wallpapers: {Message}", ex.Message);
+                }
             }
         }
-
     }
 }
