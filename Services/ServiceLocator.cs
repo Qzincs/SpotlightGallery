@@ -33,6 +33,16 @@ namespace SpotlightGallery.Services
                     outputTemplate: "{Timestamp:yyyy-MM-dd HH:mm:ss} [{Level:u3}] [{Module}] {Message:lj}{NewLine}{Exception}"
                 )
                 .CreateLogger();
+
+            // Initialize the WallpaperService with settings
+            int sourceIndex = SettingsHelper.GetSetting("Source", 0);
+            int resolutionIndex = SettingsHelper.GetSetting("Resolution", 0);
+            WallpaperService.ChangeSource((WallpaperSource)sourceIndex, resolutionIndex);
+
+            WallpaperService.IsAutoSaveEnabled = SettingsHelper.GetSetting("AutoSave", false);
+            string autoSaveDirectory = SettingsHelper.GetSetting("AutoSaveDirectory",
+                System.IO.Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.MyPictures), "SpotlightGallery"));
+            WallpaperService.AutoSaveDirectory = autoSaveDirectory;
         }
     }
 

@@ -67,10 +67,6 @@ namespace SpotlightGallery.BackgroundTasks
                     try
                     {
                         var wallpaperService = ServiceLocator.WallpaperService;
-                        // Load the settings for the wallpaper source and resolution
-                        int sourceIndex = SettingsHelper.GetSetting("Source", 0);
-                        int resolutionIndex = SettingsHelper.GetSetting("Resolution", 0);
-                        wallpaperService.ChangeSource((WallpaperSource)sourceIndex, resolutionIndex);
 
                         var wallpaper = wallpaperService.DownloadWallpaperAsync().GetAwaiter().GetResult();
                         bool success = wallpaperService.SetWallpaperAsync(wallpaper.path).GetAwaiter().GetResult();
@@ -82,7 +78,7 @@ namespace SpotlightGallery.BackgroundTasks
                             // For http/https images, there is a file size limit (3 MB on normal connections, 1 MB on metered connections; previously 200 KB).
                             // Therefore, we use a URL and reduce the image resolution to ensure the image size meets the requirement.
                             string url = wallpaper.url.Replace("_UHD", "_800x600");
-                            ShowToast("Wallpaper Updated", $"Today's wallpaper is {wallpaper.title}.", url);
+                            Helpers.ToastHelper.ShowToast("Wallpaper Updated", $"Today's wallpaper is {wallpaper.title}.", url);
 
                             // Update the next update time based on the update mode
                             int updateModeIndex = SettingsHelper.GetSetting("UpdateMode", 0);
@@ -104,48 +100,19 @@ namespace SpotlightGallery.BackgroundTasks
                         else
                         {
                             Log.Error("Failed to set wallpaper: {WallpaperPath}", wallpaper.path);
-                            ShowToast("Wallpaper Update Failed", "Please check your network connection.");
+                            Helpers.ToastHelper.ShowToast("Wallpaper Update Failed", "Please check your network connection.");
                         }
                     }
                     catch (Exception ex)
                     {
                         Log.Error(ex, "WallpaperUpdateTask Exception: {Message}", ex.Message);
-                        ShowToast("Wallpaper Update Failed", "Please check your network connection.");
+                        Helpers.ToastHelper.ShowToast("Wallpaper Update Failed", "Please check your network connection.");
                     }
                 }
             }
         }
 
-        private void ShowToast(string title, string message, string? imageUrl = null)
-        {
-            var toastXml = new XmlDocument();
-            toastXml.LoadXml("<toast><visual><binding template=\"ToastGeneric\"></binding></visual></toast>");
 
-            var binding = toastXml.SelectSingleNode("/toast/visual/binding");
-
-            var titleElement = toastXml.CreateElement("text");
-            titleElement.InnerText = title;
-            binding.AppendChild(titleElement);
-
-            var messageElement = toastXml.CreateElement("text");
-            messageElement.InnerText = message;
-            binding.AppendChild(messageElement);
-
-            if (!string.IsNullOrEmpty(imageUrl))
-            {
-                var imageElement = toastXml.CreateElement("image");
-                var placementAttr = toastXml.CreateAttribute("placement");
-                placementAttr.Value = "hero";
-                imageElement.Attributes.SetNamedItem(placementAttr);
-                var srcAttr = toastXml.CreateAttribute("src");
-                srcAttr.Value = imageUrl;
-                imageElement.Attributes.SetNamedItem(srcAttr);
-                binding.AppendChild(imageElement);
-            }
-
-            var toast = new ToastNotification(toastXml);
-            ToastNotificationManager.CreateToastNotifier().Show(toast);
-        }
 
         /// <summary>
         /// This method is signaled when the system requests the background task be canceled. This method will signal

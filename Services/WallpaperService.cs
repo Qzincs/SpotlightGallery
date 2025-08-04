@@ -74,6 +74,8 @@ namespace SpotlightGallery.Services
     {
         WallpaperSource CurrentSource { get; }
         int CurrentResolutionIndex { get; }
+        bool IsAutoSaveEnabled { get; set; }
+        string AutoSaveDirectory { get; set; }
 
         /// <summary>
         /// 下载一张壁纸
@@ -100,11 +102,23 @@ namespace SpotlightGallery.Services
         /// <param name="source">壁纸来源</param>
         /// <param name="resolutionIndex">分辨率索引</param>
         void ChangeSource(WallpaperSource source, int resolutionIndex);
+
+        /// <summary>
+        /// 清理旧壁纸文件
+        /// </summary>
+        void CleanupOldWallpapers();
     }
 
     class WallpaperService : IWallpaperService
     {
         private readonly string dataDirectory = ApplicationData.Current.LocalFolder.Path;
+        public bool IsAutoSaveEnabled { get; set; }
+        private string autoSaveDirectory = string.Empty;
+        public string AutoSaveDirectory
+        {
+            get => autoSaveDirectory;
+            set => autoSaveDirectory = value;
+        }
 
         private WallpaperSource currentSource = WallpaperSource.Spotlight;
         private SpotlightResolution spotlightResolution = SpotlightResolution.Desktop_3840x2160;
@@ -268,7 +282,7 @@ namespace SpotlightGallery.Services
                     Log.Error("No valid item found in Spotlight JSON response.");
                 }
                 Log.Error("No valid items found in Spotlight JSON response.");
-                
+
                 return new Wallpaper("", "", "", "");
             }
         }
@@ -402,7 +416,12 @@ namespace SpotlightGallery.Services
                 var file = await StorageFile.GetFileFromPathAsync(wallpaperPath);
                 UserProfilePersonalizationSettings profileSettings = UserProfilePersonalizationSettings.Current;
                 bool result = await profileSettings.TrySetWallpaperImageAsync(file);
-                
+
+                if (result)
+                {
+                    SaveWallpaperToAutoSaveDirectory(wallpaperPath);
+                }
+
                 return result;
             }
         }
@@ -454,6 +473,70 @@ namespace SpotlightGallery.Services
             {
                 path = wallpaperPath
             };
+        }
+
+        private void SaveWallpaperToAutoSaveDirectory(string wallpaperPath)
+        {
+            using (LogContext.PushProperty("Module", nameof(WallpaperService)))
+            {
+                if (!IsAutoSaveEnabled)
+                {
+                    return;
+                }
+
+                if (string.IsNullOrEmpty(autoSaveDirectory) || !Directory.Exists(autoSaveDirectory))
+                {
+                    Log.Error("Auto save directory is not set or does not exist: {AutoSaveDirectory}", autoSaveDirectory);
+                    Helpers.ToastHelper.ShowToast("自动保存失败", "自动保存目录未设置或不存在。");
+                    return;
+                }
+
+                string fileName = Path.GetFileName(wallpaperPath);
+                string filePath = Path.Combine(autoSaveDirectory, fileName);
+                
+                if (File.Exists(filePath))
+                {
+                    Log.Information("Wallpaper already exists in auto save directory: {FilePath}", filePath);
+                    return;
+                }
+
+                try
+                {
+                    byte[] fileData = File.ReadAllBytes(wallpaperPath);
+                    File.WriteAllBytes(filePath, fileData);
+
+                    Log.Information("Wallpaper saved to auto save directory: {FilePath}", filePath);
+                }
+                catch (Exception ex)
+                {
+                    Log.Error(ex, "Failed to save wallpaper to auto save directory: {Message}", ex.Message);
+                    Helpers.ToastHelper.ShowToast("自动保存失败", "保存壁纸时发生错误：" + ex.Message);
+                }
+            }
+        }
+
+        public void CleanupOldWallpapers()
+        {
+            using (LogContext.PushProperty("Module", nameof(WallpaperService)))
+            {
+                try
+                {
+                    var currentWallpaperPath = GetCurrentWallpaper().path;
+                    var files = Directory.GetFiles(dataDirectory, "*.jpg");
+                    foreach (var file in files)
+                    {
+                        if (!string.Equals(file, currentWallpaperPath, StringComparison.OrdinalIgnoreCase))
+                        {
+                            File.Delete(file);
+                            Log.Information("Deleted old wallpaper file: {FilePath}", file);
+                        }
+                    }
+                }
+                catch (Exception ex)
+                {
+                    Log.Warning(ex, "Failed to cleanup old wallpapers: {Message}", ex.Message);
+                }
+            }
         }
     }
 }

@@ -1,13 +1,18 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Collections.ObjectModel;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using CommunityToolkit.Mvvm.Input;
+using Microsoft.UI.Xaml;
 using Serilog;
 using Serilog.Context;
 using SpotlightGallery.Helpers;
 using SpotlightGallery.Services;
+using System;
+using System.Collections.Generic;
+using System.Collections.ObjectModel;
+using System.Diagnostics;
+using System.IO;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+using System.Windows.Input;
 using Windows.ApplicationModel.Background;
 
 namespace SpotlightGallery.ViewModels
@@ -240,7 +245,87 @@ namespace SpotlightGallery.ViewModels
             }
         }
 
-        // 新增属性
+        private bool isAutoSaveEnabled;
+        public bool IsAutoSaveEnabled
+        {
+            get => isAutoSaveEnabled;
+            set
+            {
+                if (SetProperty(ref isAutoSaveEnabled, value) && isInitialized)
+                {
+                    SettingsHelper.SaveSetting("AutoSave", value);
+                    ServiceLocator.WallpaperService.IsAutoSaveEnabled = value;
+                }
+            }
+        }
+
+        private string autoSaveDirectory = string.Empty;
+        public string AutoSaveDirectory
+        {
+            get => autoSaveDirectory;
+            set
+            {
+                if (SetProperty(ref autoSaveDirectory, value) && isInitialized)
+                {
+                    SettingsHelper.SaveSetting("AutoSaveDirectory", value);
+                    ServiceLocator.WallpaperService.AutoSaveDirectory = value;
+                }
+            }
+        }
+
+        public ICommand OpenAutoSaveDirectoryCommand => new RelayCommand(OpenAutoSaveDirectory);
+        private async void OpenAutoSaveDirectory()
+        {
+            if (Directory.Exists(AutoSaveDirectory))
+            {
+                Process.Start(new ProcessStartInfo
+                {
+                    FileName = "explorer.exe",
+                    Arguments = AutoSaveDirectory,
+                    UseShellExecute = true
+                });
+            }
+            else
+            {
+                var mainWindow = App.StartupWindow;
+
+                var dialog = new Microsoft.UI.Xaml.Controls.ContentDialog
+                {
+                    Title = "目录不存在",
+                    Content = "自动保存目录不存在，请先更改保存目录。",
+                    PrimaryButtonText = "确定",
+                    DefaultButton = Microsoft.UI.Xaml.Controls.ContentDialogButton.Primary,
+                    RequestedTheme = (mainWindow.Content as FrameworkElement)?.RequestedTheme ?? ElementTheme.Default,
+                    XamlRoot = mainWindow.Content.XamlRoot
+                };
+
+                var result = await dialog.ShowAsync();
+                if (result == Microsoft.UI.Xaml.Controls.ContentDialogResult.Primary)
+                {
+                    ChangeAutoSaveDirectory();
+                }
+            }
+        }
+
+        public ICommand ChangeAutoSaveDirectoryCommand => new RelayCommand(ChangeAutoSaveDirectory);
+        private async void ChangeAutoSaveDirectory()
+        {
+            var picker = new Windows.Storage.Pickers.FolderPicker
+            {
+                SuggestedStartLocation = Windows.Storage.Pickers.PickerLocationId.PicturesLibrary
+            };
+            picker.FileTypeFilter.Add("*"); // allow all file types
+
+            var hwnd = WinRT.Interop.WindowNative.GetWindowHandle(App.StartupWindow);
+            WinRT.Interop.InitializeWithWindow.Initialize(picker, hwnd);
+
+            var folder = await picker.PickSingleFolderAsync();
+            if (folder != null)
+            {
+                AutoSaveDirectory = folder.Path;
+            }
+        }
+
         private bool isDebugLogEnabled;
         public bool IsDebugLogEnabled
         {
@@ -270,11 +355,14 @@ namespace SpotlightGallery.ViewModels
             SourceIndex = SettingsHelper.GetSetting("Source", 0);
             ResolutionIndex = SettingsHelper.GetSetting("Resolution", 0);
             UpdateResolutionOptions();
-            wallpaperService.ChangeSource((WallpaperSource)SourceIndex, ResolutionIndex);
             // load auto update settings
             IsAutoUpdateEnabled = SettingsHelper.GetSetting("AutoUpdate", false);
             UpdateModeIndex = SettingsHelper.GetSetting("UpdateMode", 0);
             UpdateTime = SettingsHelper.GetSetting("UpdateTime", TimeSpan.FromHours(12));
+            // load auto save settings
+            IsAutoSaveEnabled = SettingsHelper.GetSetting("AutoSave", false);
+            AutoSaveDirectory = SettingsHelper.GetSetting("AutoSaveDirectory", Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.MyPictures), "SpotlightGallery"));
+            // load debug log settings
             IsDebugLogEnabled = SettingsHelper.GetSetting("DebugLogEnabled", false);
         }
     }
