@@ -324,7 +324,12 @@ namespace SpotlightGallery.Services
                     _ => ""
                 };
 
-                string wallpaperPath = Path.Combine(dataDirectory, $"{wallpaper.title}_{resolutionSuffix}.jpg");
+                string safeTitle = wallpaper.title;
+                foreach (char c in Path.GetInvalidFileNameChars())
+                {
+                    safeTitle = safeTitle.Replace(c, '_');
+                }
+                string wallpaperPath = Path.Combine(dataDirectory, $"{safeTitle}_{resolutionSuffix}.jpg");
 
                 if (File.Exists(wallpaperPath))
                 {
@@ -334,6 +339,7 @@ namespace SpotlightGallery.Services
 
                 using (var httpClient = new HttpClient())
                 {
+                    httpClient.Timeout = TimeSpan.FromSeconds(15);
                     // 下载壁纸图片
                     HttpResponseMessage imageResponse = await httpClient.GetAsync(wallpaper.url);
                     byte[] imageData = await imageResponse.Content.ReadAsByteArrayAsync();
