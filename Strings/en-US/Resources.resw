@@ -254,4 +254,49 @@
   <data name="DebugLog.Description" xml:space="preserve">
     <value>Enable to record detailed debug logs for troubleshooting</value>
   </data>
+  <data name="LocaleOption_Australia.Content" xml:space="preserve">
+    <value>Australia</value>
+  </data>
+  <data name="LocaleOption_Brazil.Content" xml:space="preserve">
+    <value>Brazil</value>
+  </data>
+  <data name="LocaleOption_China.Content" xml:space="preserve">
+    <value>China</value>
+  </data>
+  <data name="LocaleOption_Canada.Content" xml:space="preserve">
+    <value>Canada</value>
+  </data>
+  <data name="LocaleOption_France.Content" xml:space="preserve">
+    <value>France</value>
+  </data>
+  <data name="LocaleOption_Germany.Content" xml:space="preserve">
+    <value>Germany</value>
+  </data>
+  <data name="LocaleOption_India.Content" xml:space="preserve">
+    <value>India</value>
+  </data>
+  <data name="LocaleOption_Italy.Content" xml:space="preserve">
+    <value>Italy</value>
+  </data>
+  <data name="LocaleOption_Japan.Content" xml:space="preserve">
+    <value>Japan</value>
+  </data>
+  <data name="LocaleOption_NewZealand.Content" xml:space="preserve">
+    <value>New Zealand</value>
+  </data>
+  <data name="LocaleOption_Spain.Content" xml:space="preserve">
+    <value>Spain</value>
+  </data>
+  <data name="LocaleOption_UK.Content" xml:space="preserve">
+    <value>United Kingdom</value>
+  </data>
+  <data name="LocaleOption_US.Content" xml:space="preserve">
+    <value>United States</value>
+  </data>
+  <data name="WallpaperLocale.Header" xml:space="preserve">
+    <value>Wallpaper Region</value>
+  </data>
+  <data name="WallpaperLocale.Description" xml:space="preserve">
+    <value>Wallpaper content may vary by region</value>
+  </data>
 </root>

@@ -99,6 +99,19 @@ namespace SpotlightGallery.ViewModels
             }
         }
 
+        private int wallpaperLocaleIndex;
+        public int WallpaperLocaleIndex
+        {
+            get => wallpaperLocaleIndex;
+            set
+            {
+                if (SetProperty(ref wallpaperLocaleIndex, value) && isInitialized)
+                {
+                    SettingsHelper.SaveSetting("WallpaperLocale", value);
+                }
+            }
+        }
+
         private bool isAutoUpdateEnabled;
         public bool IsAutoUpdateEnabled
         {
