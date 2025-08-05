@@ -108,6 +108,7 @@ namespace SpotlightGallery.ViewModels
                 if (SetProperty(ref wallpaperLocaleIndex, value) && isInitialized)
                 {
                     SettingsHelper.SaveSetting("WallpaperLocale", value);
+                    wallpaperService.CurrentLocale = (WallpaperLocale)value;
                 }
             }
         }
@@ -368,6 +369,8 @@ namespace SpotlightGallery.ViewModels
             SourceIndex = SettingsHelper.GetSetting("Source", 0);
             ResolutionIndex = SettingsHelper.GetSetting("Resolution", 0);
             UpdateResolutionOptions();
+            // load wallpaper locale settings
+            WallpaperLocaleIndex = SettingsHelper.GetSetting("WallpaperLocale", (int)WallpaperLocale.en_US); // default to en-US
             // load auto update settings
             IsAutoUpdateEnabled = SettingsHelper.GetSetting("AutoUpdate", false);
             UpdateModeIndex = SettingsHelper.GetSetting("UpdateMode", 0);

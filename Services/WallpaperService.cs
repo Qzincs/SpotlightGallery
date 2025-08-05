@@ -70,10 +70,52 @@ namespace SpotlightGallery.Services
         }
     }
 
+    public enum WallpaperLocale
+    {
+        en_AU,
+        pt_BR,
+        en_CA,
+        zh_CN,
+        fr_FR,
+        de_DE,
+        en_IN,
+        it_IT,
+        ja_JP,
+        en_ZA,
+        es_ES,
+        en_GB,
+        en_US,
+    }
+
+    public static class WallpaperLocaleExtensions
+    {
+        public static (string locale, string country) GetLocaleParams(this WallpaperLocale wallpaperLocale)
+        {
+            return wallpaperLocale switch
+            {
+                WallpaperLocale.en_AU => ("en-AU", "AU"),
+                WallpaperLocale.pt_BR => ("pt-BR", "BR"),
+                WallpaperLocale.en_CA => ("en-CA", "CA"),
+                WallpaperLocale.zh_CN => ("zh-CN", "CN"),
+                WallpaperLocale.fr_FR => ("fr-FR", "FR"),
+                WallpaperLocale.de_DE => ("de-DE", "DE"),
+                WallpaperLocale.en_IN => ("en-IN", "IN"),
+                WallpaperLocale.it_IT => ("it-IT", "IT"),
+                WallpaperLocale.ja_JP => ("ja-JP", "JP"),
+                WallpaperLocale.en_ZA => ("en-ZA", "ZA"),
+                WallpaperLocale.es_ES => ("es-ES", "ES"),
+                WallpaperLocale.en_GB => ("en-GB", "GB"),
+                WallpaperLocale.en_US => ("en-US", "US"),
+                _ => ("en-US", "US")
+            };
+        }
+    }
+
     public interface IWallpaperService
     {
         WallpaperSource CurrentSource { get; }
         int CurrentResolutionIndex { get; }
+        WallpaperLocale CurrentLocale { get; set; }
         bool IsAutoSaveEnabled { get; set; }
         string AutoSaveDirectory { get; set; }
 
@@ -138,6 +180,8 @@ namespace SpotlightGallery.Services
             }
         }
 
+        public WallpaperLocale CurrentLocale { get; set; }
+
         public void ChangeSource(WallpaperSource source, int resolutionIndex)
         {
             using (LogContext.PushProperty("Module", nameof(WallpaperService)))
@@ -168,16 +212,19 @@ namespace SpotlightGallery.Services
             using (LogContext.PushProperty("Module", nameof(WallpaperService)))
             {
                 string apiUrl = string.Empty;
+                (string locale, string country) = CurrentLocale.GetLocaleParams();
                 switch (currentSource)
                 {
                     case WallpaperSource.Spotlight:
                         if (spotlightResolution == SpotlightResolution.Desktop_3840x2160)
-                            apiUrl = "https://fd.api.iris.microsoft.com/v4/api/selection?&placement=88000820&bcnt=1&country=CN&locale=zh-CN&fmt=json";
+                            apiUrl = $"https://fd.api.iris.microsoft.com/v4/api/selection?&placement=88000820&bcnt=1&country={country}&locale={locale}&fmt=json";
                         else
-                            apiUrl = "https://arc.msn.com/v3/Delivery/Placement?pid=338387&fmt=json&cdm=1&pl=zh-CN&lc=zh-CN&ctry=CN";
+                            // When ctry is set to DE, FR, IT, or ES, the API returns no image data.
+                            // Testing shows the result mainly depends on 'pl' and 'lc', so for convenience, 'ctry' is fixed to 'us' here.
+                            apiUrl = $"https://arc.msn.com/v3/Delivery/Placement?pid=338387&fmt=json&cdm=1&pl={locale}&lc={locale}&ctry=us";
                         break;
                     case WallpaperSource.BingDaily:
-                        apiUrl = "https://services.bingapis.com/ge-apps/api/v2/bwc/hpimages?mkt=zh-cn&theme=bing&defaultBrowser=ME&dhpSetToBing=True&dseSetToBing=True";
+                        apiUrl = $"https://services.bingapis.com/ge-apps/api/v2/bwc/hpimages?mkt={locale}&theme=bing&defaultBrowser=ME&dhpSetToBing=True&dseSetToBing=True";
                         break;
                 }
 
