@@ -64,6 +64,26 @@
                             ItemsSource="{x:Bind ViewModel.ResolutionOptions, Mode=OneWay}"
                             SelectedIndex="{x:Bind ViewModel.ResolutionIndex, Mode=TwoWay}" />
                     </toolkit:SettingsCard>
+                    <toolkit:SettingsCard x:Uid="WallpaperLocale">
+                        <toolkit:SettingsCard.HeaderIcon>
+                            <FontIcon Glyph="&#xE909;" />
+                        </toolkit:SettingsCard.HeaderIcon>
+                        <ComboBox SelectedIndex="{x:Bind ViewModel.WallpaperLocaleIndex, Mode=TwoWay}">
+                            <ComboBoxItem x:Uid="LocaleOption_Australia"/>
+                            <ComboBoxItem x:Uid="LocaleOption_Brazil"/>
+                            <ComboBoxItem x:Uid="LocaleOption_Canada"/>
+                            <ComboBoxItem x:Uid="LocaleOption_China"/>
+                            <ComboBoxItem x:Uid="LocaleOption_France"/>
+                            <ComboBoxItem x:Uid="LocaleOption_Germany"/>
+                            <ComboBoxItem x:Uid="LocaleOption_India"/>
+                            <ComboBoxItem x:Uid="LocaleOption_Italy"/>
+                            <ComboBoxItem x:Uid="LocaleOption_Japan"/>
+                            <ComboBoxItem x:Uid="LocaleOption_NewZealand"/>
+                            <ComboBoxItem x:Uid="LocaleOption_Spain"/>
+                            <ComboBoxItem x:Uid="LocaleOption_UK"/>
+                            <ComboBoxItem x:Uid="LocaleOption_US"/>
+                        </ComboBox>
+                    </toolkit:SettingsCard>
                     <toolkit:SettingsExpander x:Uid="AutoUpdate">
                         <toolkit:SettingsExpander.HeaderIcon>
                             <FontIcon Glyph="&#xE895;" />
@@ -125,7 +145,7 @@
                     </toolkit:SettingsCard>
                     <toolkit:SettingsCard x:Uid="DisplayLanguage">
                         <toolkit:SettingsCard.HeaderIcon>
-                            <FontIcon Glyph="&#xE774;"/>
+                            <FontIcon Glyph="&#xF2B7;"/>
                         </toolkit:SettingsCard.HeaderIcon>
                         <ComboBox SelectedIndex="0">
                             <ComboBoxItem x:Uid="Chinese"/>
