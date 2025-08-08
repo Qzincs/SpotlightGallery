@@ -147,7 +147,7 @@
                         <toolkit:SettingsCard.HeaderIcon>
                             <FontIcon Glyph="&#xF2B7;"/>
                         </toolkit:SettingsCard.HeaderIcon>
-                        <ComboBox SelectedIndex="0">
+                        <ComboBox SelectedIndex="{x:Bind ViewModel.DisplayLanguageIndex, Mode=TwoWay}">
                             <ComboBoxItem x:Uid="Chinese"/>
                             <ComboBoxItem x:Uid="English"/>
                         </ComboBox>
