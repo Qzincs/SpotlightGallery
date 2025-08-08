@@ -216,7 +216,7 @@
     <value>Display Language</value>
   </data>
   <data name="Chinese.Content" xml:space="preserve">
-    <value>Chinese</value>
+    <value>中文</value>
   </data>
   <data name="English.Content" xml:space="preserve">
     <value>English</value>
@@ -298,5 +298,38 @@
   </data>
   <data name="WallpaperLocale.Description" xml:space="preserve">
     <value>Wallpaper content may vary by region</value>
+  </data>
+  <data name="FolderNotFoundDialog_Title" xml:space="preserve">
+    <value>Directory Not Found</value>
+  </data>
+  <data name="FolderNotFoundDialog_Content" xml:space="preserve">
+    <value>The auto-save directory does not exist. Please change the save directory first.</value>
+  </data>
+  <data name="FolderNotFoundDialog_Button" xml:space="preserve">
+    <value>OK</value>
+  </data>
+  <data name="Toast_WallpaperUpdated_Title" xml:space="preserve">
+    <value>Wallpaper Updated</value>
+  </data>
+  <data name="Toast_WallpaperUpdated_Content" xml:space="preserve">
+    <value>Today's wallpaper is {0}.</value>
+  </data>
+  <data name="Toast_WallpaperUpdateFailed_Title" xml:space="preserve">
+    <value>Wallpaper Update Failed</value>
+  </data>
+  <data name="Toast_WallpaperUpdateFailed_Content" xml:space="preserve">
+    <value>Please check your network connection.</value>
+  </data>
+  <data name="LanguageChangeDialog_Title" xml:space="preserve">
+    <value>Restart Required</value>
+  </data>
+  <data name="LanguageChangeDialog_Content" xml:space="preserve">
+    <value>The app needs to restart to apply the language change. Restart now?</value>
+  </data>
+  <data name="LanguageChangeDialog_PrimaryButton" xml:space="preserve">
+    <value>OK</value>
+  </data>
+  <data name="LanguageChangeDialog_CancelButton" xml:space="preserve">
+    <value>Cancel</value>
   </data>
 </root>

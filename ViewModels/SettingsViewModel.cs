@@ -20,6 +20,8 @@ namespace SpotlightGallery.ViewModels
     public class SettingsViewModel : ViewModelBase
     {
         private readonly IWallpaperService wallpaperService = ServiceLocator.WallpaperService;
+        private static Windows.ApplicationModel.Resources.ResourceLoader ResourceLoader =>
+            Windows.ApplicationModel.Resources.ResourceLoader.GetForViewIndependentUse();
 
         private bool isInitialized = false;
 
@@ -302,12 +304,15 @@ namespace SpotlightGallery.ViewModels
             else
             {
                 var mainWindow = App.StartupWindow;
-
+                var loader = ResourceLoader;
+                string title = loader.GetString("FolderNotFoundDialog_Title");
+                string content = loader.GetString("FolderNotFoundDialog_Content");
+                string button = loader.GetString("FolderNotFoundDialog_Button");
                 var dialog = new Microsoft.UI.Xaml.Controls.ContentDialog
                 {
-                    Title = "目录不存在",
-                    Content = "自动保存目录不存在，请先更改保存目录。",
-                    PrimaryButtonText = "确定",
+                    Title = title,
+                    Content = content,
+                    PrimaryButtonText = button,
                     DefaultButton = Microsoft.UI.Xaml.Controls.ContentDialogButton.Primary,
                     RequestedTheme = (mainWindow.Content as FrameworkElement)?.RequestedTheme ?? ElementTheme.Default,
                     XamlRoot = mainWindow.Content.XamlRoot
@@ -337,6 +342,48 @@ namespace SpotlightGallery.ViewModels
             if (folder != null)
             {
                 AutoSaveDirectory = folder.Path;
+            }
+        }
+
+        private int displayLanguageIndex;
+        public int DisplayLanguageIndex
+        {
+            get => displayLanguageIndex;
+            set
+            {
+                if (SetProperty(ref displayLanguageIndex, value) && isInitialized)
+                {
+                    SettingsHelper.SaveSetting("DisplayLanguage", value);
+                    ChangeDisplayLanguage((DisplayLanguageOption)value);
+                }
+            }
+        }
+
+        private async void ChangeDisplayLanguage(DisplayLanguageOption option)
+        {
+            LanguageHelper.ApplyDisplayLanguage();
+
+            var mainWindow = App.StartupWindow;
+            var loader = Windows.ApplicationModel.Resources.ResourceLoader.GetForViewIndependentUse();
+            string title = loader.GetString("LanguageChangeDialog_Title");
+            string content = loader.GetString("LanguageChangeDialog_Content");
+            string primaryButton = loader.GetString("LanguageChangeDialog_PrimaryButton");
+            string cancelButton = loader.GetString("LanguageChangeDialog_CancelButton");
+            var dialog = new Microsoft.UI.Xaml.Controls.ContentDialog
+            {
+                Title = title,
+                Content = content,
+                PrimaryButtonText = primaryButton,
+                CloseButtonText = cancelButton,
+                DefaultButton = Microsoft.UI.Xaml.Controls.ContentDialogButton.Primary,
+                RequestedTheme = (mainWindow.Content as FrameworkElement)?.RequestedTheme ?? ElementTheme.Default,
+                XamlRoot = mainWindow.Content.XamlRoot
+            };
+
+            var result = await dialog.ShowAsync();
+            if (result == Microsoft.UI.Xaml.Controls.ContentDialogResult.Primary)
+            {
+                Microsoft.Windows.AppLifecycle.AppInstance.Restart("");
             }
         }
 
@@ -378,6 +425,8 @@ namespace SpotlightGallery.ViewModels
             // load auto save settings
             IsAutoSaveEnabled = SettingsHelper.GetSetting("AutoSave", false);
             AutoSaveDirectory = SettingsHelper.GetSetting("AutoSaveDirectory", Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.MyPictures), "SpotlightGallery"));
+            // load display language settings
+            DisplayLanguageIndex = SettingsHelper.GetSetting("DisplayLanguage", 0);
             // load debug log settings
             IsDebugLogEnabled = SettingsHelper.GetSetting("DebugLogEnabled", false);
         }

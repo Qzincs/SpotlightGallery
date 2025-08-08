@@ -3,6 +3,7 @@ using System.Runtime.InteropServices;
 using Windows.ApplicationModel.Background;
 using Windows.UI.Notifications;
 using Windows.Data.Xml.Dom;
+using SpotlightGallery.Helpers;
 using SpotlightGallery.Services;
 using Serilog;
 using Serilog.Context;
@@ -64,6 +65,9 @@ namespace SpotlightGallery.BackgroundTasks
                 if (now > nextUpdateTime)
                 {
                     Log.Information("Current time is past the next update time {NextUpdateTime}. Proceeding with wallpaper update.", nextUpdateTime);
+
+                    LanguageHelper.ApplyDisplayLanguage();
+                    var loader = Windows.ApplicationModel.Resources.ResourceLoader.GetForViewIndependentUse();
                     try
                     {
                         var wallpaperService = ServiceLocator.WallpaperService;
@@ -77,8 +81,10 @@ namespace SpotlightGallery.BackgroundTasks
                             // Toast notifications only accept images from three URI schemes: http(s)://, ms-appx:///, and ms-appdata:///.
                             // For http/https images, there is a file size limit (3 MB on normal connections, 1 MB on metered connections; previously 200 KB).
                             // Therefore, we use a URL and reduce the image resolution to ensure the image size meets the requirement.
+                            string toastTitle = loader.GetString("Toast_WallpaperUpdated_Title");
+                            string toastContent = string.Format(loader.GetString("Toast_WallpaperUpdated_Content"), wallpaper.title);
                             string url = wallpaper.url.Replace("_UHD", "_800x600");
-                            Helpers.ToastHelper.ShowToast("Wallpaper Updated", $"Today's wallpaper is {wallpaper.title}.", url);
+                            ToastHelper.ShowToast(toastTitle, toastContent, url);
 
                             // Update the next update time based on the update mode
                             int updateModeIndex = SettingsHelper.GetSetting("UpdateMode", 0);
@@ -100,13 +106,17 @@ namespace SpotlightGallery.BackgroundTasks
                         else
                         {
                             Log.Error("Failed to set wallpaper: {WallpaperPath}", wallpaper.path);
-                            Helpers.ToastHelper.ShowToast("Wallpaper Update Failed", "Please check your network connection.");
+                            string toastTitle = loader.GetString("Toast_WallpaperUpdateFailed_Title");
+                            string toastContent = loader.GetString("Toast_WallpaperUpdateFailed_Content");
+                            ToastHelper.ShowToast(toastTitle, toastContent);
                         }
                     }
                     catch (Exception ex)
                     {
                         Log.Error(ex, "WallpaperUpdateTask Exception: {Message}", ex.Message);
-                        Helpers.ToastHelper.ShowToast("Wallpaper Update Failed", "Please check your network connection.");
+                        string toastTitle = loader.GetString("Toast_WallpaperUpdateFailed_Title");
+                        string toastContent = loader.GetString("Toast_WallpaperUpdateFailed_Content");
+                        ToastHelper.ShowToast(toastTitle, toastContent);
                     }
                 }
             }

@@ -297,4 +297,37 @@
   <data name="WallpaperLocale.Description" xml:space="preserve">
     <value>不同的区域可能会提供不同的壁纸内容</value>
   </data>
+  <data name="FolderNotFoundDialog_Title" xml:space="preserve">
+    <value>目录不存在</value>
+  </data>
+  <data name="FolderNotFoundDialog_Content" xml:space="preserve">
+    <value>自动保存目录不存在，请先更改保存目录。</value>
+  </data>
+  <data name="FolderNotFoundDialog_Button" xml:space="preserve">
+    <value>确定</value>
+  </data>
+  <data name="Toast_WallpaperUpdated_Title" xml:space="preserve">
+    <value>壁纸已更新</value>
+  </data>
+  <data name="Toast_WallpaperUpdated_Content" xml:space="preserve">
+    <value>今天的壁纸是”{0}“。</value>
+  </data>
+  <data name="Toast_WallpaperUpdateFailed_Title" xml:space="preserve">
+    <value>壁纸更新失败</value>
+  </data>
+  <data name="Toast_WallpaperUpdateFailed_Content" xml:space="preserve">
+    <value>请检查您的网络连接。</value>
+  </data>
+  <data name="LanguageChangeDialog_Title" xml:space="preserve">
+    <value>需要重启</value>
+  </data>
+  <data name="LanguageChangeDialog_Content" xml:space="preserve">
+    <value>切换语言后需要重启应用以生效。是否立即重启？</value>
+  </data>
+  <data name="LanguageChangeDialog_PrimaryButton" xml:space="preserve">
+    <value>确定</value>
+  </data>
+  <data name="LanguageChangeDialog_CancelButton" xml:space="preserve">
+    <value>取消</value>
+  </data>
 </root>
