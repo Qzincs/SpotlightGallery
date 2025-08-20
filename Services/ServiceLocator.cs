@@ -38,7 +38,7 @@ namespace SpotlightGallery.Services
             int sourceIndex = SettingsHelper.GetSetting("Source", 0);
             int resolutionIndex = SettingsHelper.GetSetting("Resolution", 0);
             WallpaperService.ChangeSource((WallpaperSource)sourceIndex, resolutionIndex);
-            WallpaperService.CurrentLocale = (WallpaperLocale)SettingsHelper.GetSetting("WallpaperLocale", (int)WallpaperLocale.en_US); // default to en-US
+            WallpaperService.CurrentLocale = (WallpaperLocale)SettingsHelper.GetSetting("WallpaperLocale", (int)WallpaperLocale.zh_CN); // default to zh-CN
 
             WallpaperService.IsAutoSaveEnabled = SettingsHelper.GetSetting("AutoSave", false);
             string autoSaveDirectory = SettingsHelper.GetSetting("AutoSaveDirectory",

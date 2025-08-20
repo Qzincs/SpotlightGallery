@@ -417,7 +417,7 @@ namespace SpotlightGallery.ViewModels
             ResolutionIndex = SettingsHelper.GetSetting("Resolution", 0);
             UpdateResolutionOptions();
             // load wallpaper locale settings
-            WallpaperLocaleIndex = SettingsHelper.GetSetting("WallpaperLocale", (int)WallpaperLocale.en_US); // default to en-US
+            WallpaperLocaleIndex = SettingsHelper.GetSetting("WallpaperLocale", (int)WallpaperLocale.zh_CN); // default to zh-CN
             // load auto update settings
             IsAutoUpdateEnabled = SettingsHelper.GetSetting("AutoUpdate", false);
             UpdateModeIndex = SettingsHelper.GetSetting("UpdateMode", 0);
