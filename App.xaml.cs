@@ -4,6 +4,7 @@ using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Media;
 using SpotlightGallery.Helpers;
 using SpotlightGallery.Pages;
+using SpotlightGallery.Services;
 using System;
 using System.Runtime.InteropServices;
 using Windows.Graphics;
@@ -35,6 +36,7 @@ namespace SpotlightGallery
         public App()
         {
             InitializeComponent();
+            ServiceLocator.Initialize();
         }
 
         protected override void OnLaunched(Microsoft.UI.Xaml.LaunchActivatedEventArgs args)
@@ -47,17 +49,39 @@ namespace SpotlightGallery
             IntPtr hWnd = WindowNative.GetWindowHandle(startupWindow);
             var windowId = Win32Interop.GetWindowIdFromWindow(hWnd);
             var appWindow = AppWindow.GetFromWindowId(windowId);
-            
+
             // 调整窗口大小
             appWindow.Resize(new SizeInt32(DefaultWindowWidth, DefaultWindowHeight));
-            
+
             // 使窗口居中显示
             CenterWindow(appWindow);
 
             // 创建窗口过程钩子，处理窗口大小调整
             windowHook = new WindowProcedureHook(startupWindow, WndProc);
 
+            // 注册窗口关闭事件
+            startupWindow.Closed += StartupWindow_Closed;
+
             startupWindow.Activate();
+
+            LoadSettings();
+        }
+        
+        private void StartupWindow_Closed(object sender, WindowEventArgs e)
+        {
+            ServiceLocator.WallpaperService.CleanupOldWallpapers();
+        }
+
+        /// <summary>
+        /// 加载设置项
+        /// </summary>
+        private void LoadSettings()
+        {
+            int themeIndex = SettingsHelper.GetSetting("AppTheme", 2);
+            ThemeManager.ApplyTheme(themeIndex);
+
+            // 监听系统主题变化，自动更新标题栏按钮颜色
+            ThemeManager.RegisterSystemThemeListener(startupWindow);
         }
 
         /// <summary>

@@ -5,6 +5,8 @@ using Microsoft.UI.Xaml.Data;
 using Microsoft.UI.Xaml.Input;
 using Microsoft.UI.Xaml.Media;
 using Microsoft.UI.Xaml.Navigation;
+using Serilog;
+using Serilog.Context;
 using SpotlightGallery.Services;
 using SpotlightGallery.ViewModels;
 using System;
@@ -29,25 +31,27 @@ namespace SpotlightGallery.Pages
 
         public HomePage()
         {
-            try
+            using (LogContext.PushProperty("Module", nameof(HomePage)))
             {
-                InitializeComponent();
-
-                var wallpaperService = new WallpaperService();
-                ViewModel = new HomePageViewModel(wallpaperService);
-
-                if (ViewModel != null && this != null)
+                try
                 {
-                    this.DataContext = ViewModel;
+                    InitializeComponent();
+
+                    ViewModel = new HomePageViewModel();
+
+                    if (ViewModel != null && this != null)
+                    {
+                        this.DataContext = ViewModel;
+                    }
+                    else
+                    {
+                        Log.Error("Failed to set DataContext - ViewModel or HomePage is null.");
+                    }
                 }
-                else
+                catch (Exception ex)
                 {
-                    System.Diagnostics.Debug.WriteLine($"设置 DataContext 失败 - ViewModel: {ViewModel != null}, this: {this != null}");
+                    Log.Fatal(ex, "HomePage Initialization Exception: {Message}", ex.Message);
                 }
-            }
-            catch (Exception ex)
-            {
-                System.Diagnostics.Debug.WriteLine($"HomePage 初始化异常: {ex}");
             }
         }
     }

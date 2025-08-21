@@ -1,6 +1,7 @@
 ﻿using Microsoft.Win32;
+using Serilog;
+using Serilog.Context;
 using SpotlightGallery.Models;
-using SpotlightGallery.Models.Spotlight;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -16,21 +17,108 @@ namespace SpotlightGallery.Services
     public enum WallpaperSource
     {
         /// <summary>
-        /// Windows聚焦桌面，分辨率3840x2160
+        /// Windows聚焦
         /// </summary>
-        SpotlightDesktop,
-        /// <summary>
-        /// Windows聚焦锁屏，分辨率1920x1080
-        /// </summary>
-        SpotlightLockScreen,
+        Spotlight,
         /// <summary>
         /// Bing每日一图，多分辨率
         /// </summary>
         BingDaily
     }
 
+    public enum SpotlightResolution
+    {
+        Desktop_3840x2160,
+        Lockscreen_1920x1080
+    }
+
+    public enum BingResolution
+    {
+        R3840x2160,
+        R1920x1200,
+        R1920x1080,
+        R1366x768,
+        R1280x768,
+        R1024x768,
+        R800x600
+    }
+    public static class ResolutionExtensions
+    {
+        public static string ToResolutionString(this SpotlightResolution resolution)
+        {
+            return resolution switch
+            {
+                SpotlightResolution.Desktop_3840x2160 => "UHD",
+                SpotlightResolution.Lockscreen_1920x1080 => "1920x1080",
+                _ => resolution.ToString()
+            };
+        }
+
+        public static string ToResolutionString(this BingResolution resolution)
+        {
+            return resolution switch
+            {
+                BingResolution.R3840x2160 => "UHD",
+                BingResolution.R1920x1200 => "1920x1200",
+                BingResolution.R1920x1080 => "1920x1080",
+                BingResolution.R1366x768 => "1366x768",
+                BingResolution.R1280x768 => "1280x768",
+                BingResolution.R1024x768 => "1024x768",
+                BingResolution.R800x600 => "800x600",
+                _ => resolution.ToString()
+            };
+        }
+    }
+
+    public enum WallpaperLocale
+    {
+        en_AU,
+        pt_BR,
+        en_CA,
+        zh_CN,
+        fr_FR,
+        de_DE,
+        en_IN,
+        it_IT,
+        ja_JP,
+        en_ZA,
+        es_ES,
+        en_GB,
+        en_US,
+    }
+
+    public static class WallpaperLocaleExtensions
+    {
+        public static (string locale, string country) GetLocaleParams(this WallpaperLocale wallpaperLocale)
+        {
+            return wallpaperLocale switch
+            {
+                WallpaperLocale.en_AU => ("en-AU", "AU"),
+                WallpaperLocale.pt_BR => ("pt-BR", "BR"),
+                WallpaperLocale.en_CA => ("en-CA", "CA"),
+                WallpaperLocale.zh_CN => ("zh-CN", "CN"),
+                WallpaperLocale.fr_FR => ("fr-FR", "FR"),
+                WallpaperLocale.de_DE => ("de-DE", "DE"),
+                WallpaperLocale.en_IN => ("en-IN", "IN"),
+                WallpaperLocale.it_IT => ("it-IT", "IT"),
+                WallpaperLocale.ja_JP => ("ja-JP", "JP"),
+                WallpaperLocale.en_ZA => ("en-ZA", "ZA"),
+                WallpaperLocale.es_ES => ("es-ES", "ES"),
+                WallpaperLocale.en_GB => ("en-GB", "GB"),
+                WallpaperLocale.en_US => ("en-US", "US"),
+                _ => ("en-US", "US")
+            };
+        }
+    }
+
     public interface IWallpaperService
     {
+        WallpaperSource CurrentSource { get; }
+        int CurrentResolutionIndex { get; }
+        WallpaperLocale CurrentLocale { get; set; }
+        bool IsAutoSaveEnabled { get; set; }
+        string AutoSaveDirectory { get; set; }
+
         /// <summary>
         /// 下载一张壁纸
         /// </summary>
@@ -49,11 +137,70 @@ namespace SpotlightGallery.Services
         /// </summary>
         /// <returns>当前壁纸</returns>
         Wallpaper GetCurrentWallpaper();
+
+        /// <summary>
+        /// 更换壁纸来源
+        /// </summary>
+        /// <param name="source">壁纸来源</param>
+        /// <param name="resolutionIndex">分辨率索引</param>
+        void ChangeSource(WallpaperSource source, int resolutionIndex);
+
+        /// <summary>
+        /// 清理旧壁纸文件
+        /// </summary>
+        void CleanupOldWallpapers();
     }
 
     class WallpaperService : IWallpaperService
     {
         private readonly string dataDirectory = ApplicationData.Current.LocalFolder.Path;
+        public bool IsAutoSaveEnabled { get; set; }
+        private string autoSaveDirectory = string.Empty;
+        public string AutoSaveDirectory
+        {
+            get => autoSaveDirectory;
+            set => autoSaveDirectory = value;
+        }
+
+        private WallpaperSource currentSource = WallpaperSource.Spotlight;
+        private SpotlightResolution spotlightResolution = SpotlightResolution.Desktop_3840x2160;
+        private BingResolution bingResolution = BingResolution.R1920x1080;
+
+        public WallpaperSource CurrentSource => currentSource;
+        public int CurrentResolutionIndex
+        {
+            get
+            {
+                return currentSource switch
+                {
+                    WallpaperSource.Spotlight => (int)spotlightResolution,
+                    WallpaperSource.BingDaily => (int)bingResolution,
+                    _ => 0
+                };
+            }
+        }
+
+        public WallpaperLocale CurrentLocale { get; set; }
+
+        public void ChangeSource(WallpaperSource source, int resolutionIndex)
+        {
+            using (LogContext.PushProperty("Module", nameof(WallpaperService)))
+            {
+                currentSource = source;
+                switch (source)
+                {
+                    case WallpaperSource.Spotlight:
+                        spotlightResolution = (SpotlightResolution)resolutionIndex;
+                        break;
+                    case WallpaperSource.BingDaily:
+                        bingResolution = (BingResolution)resolutionIndex;
+                        break;
+                }
+                Log.Debug("Changed wallpaper source to {Source} with resolution {Resolution}",
+                    currentSource.ToString(),
+                    currentSource == WallpaperSource.Spotlight ? spotlightResolution.ToResolutionString() : bingResolution.ToResolutionString());
+            }
+        }
 
         /// <summary>
         /// 从特定的源获取壁纸信息的Json字符串
@@ -62,24 +209,37 @@ namespace SpotlightGallery.Services
         /// <returns>壁纸信息Json字符串</returns>
         public async Task<string> FetchJsonFromApi(WallpaperSource source)
         {
-            string apiUrl = source switch
+            using (LogContext.PushProperty("Module", nameof(WallpaperService)))
             {
-                WallpaperSource.SpotlightDesktop => "https://fd.api.iris.microsoft.com/v4/api/selection?&placement=88000820&bcnt=1&country=CN&locale=zh-CN&fmt=json",
-                WallpaperSource.SpotlightLockScreen => "https://arc.msn.com/v3/Delivery/Placement?pid=338387&fmt=json&cdm=1&pl=zh-CN&lc=zh-CN&ctry=CN",
-                WallpaperSource.BingDaily => "https://services.bingapis.com/ge-apps/api/v2/bwc/hpimages?mkt=zh-cn&theme=bing&defaultBrowser=ME&dhpSetToBing=True&dseSetToBing=True",
-                _ => throw new ArgumentException("Unsupported wallpaper source", nameof(source))
-            };
-
-            using (var httpClient = new HttpClient())
-            {
-                HttpResponseMessage response = await httpClient.GetAsync(apiUrl);
-                if (response.IsSuccessStatusCode)
+                string apiUrl = string.Empty;
+                (string locale, string country) = CurrentLocale.GetLocaleParams();
+                switch (currentSource)
                 {
-                    return await response.Content.ReadAsStringAsync();
+                    case WallpaperSource.Spotlight:
+                        if (spotlightResolution == SpotlightResolution.Desktop_3840x2160)
+                            apiUrl = $"https://fd.api.iris.microsoft.com/v4/api/selection?&placement=88000820&bcnt=1&country={country}&locale={locale}&fmt=json";
+                        else
+                            // When ctry is set to DE, FR, IT, or ES, the API returns no image data.
+                            // Testing shows the result mainly depends on 'pl' and 'lc', so for convenience, 'ctry' is fixed to 'us' here.
+                            apiUrl = $"https://arc.msn.com/v3/Delivery/Placement?pid=338387&fmt=json&cdm=1&pl={locale}&lc={locale}&ctry=us";
+                        break;
+                    case WallpaperSource.BingDaily:
+                        apiUrl = $"https://services.bingapis.com/ge-apps/api/v2/bwc/hpimages?mkt={locale}&theme=bing&defaultBrowser=ME&dhpSetToBing=True&dseSetToBing=True";
+                        break;
                 }
-            }
 
-            return string.Empty;
+                using (var httpClient = new HttpClient())
+                {
+                    HttpResponseMessage response = await httpClient.GetAsync(apiUrl);
+                    if (response.IsSuccessStatusCode)
+                    {
+                        return await response.Content.ReadAsStringAsync();
+                    }
+                    Log.Error("Failed to fetch wallpaper JSON from {ApiUrl}. Status code: {StatusCode}", apiUrl, response.StatusCode);
+                }
+
+                return string.Empty;
+            }
         }
 
         /// <summary>
@@ -89,16 +249,30 @@ namespace SpotlightGallery.Services
         /// <returns>壁纸对象</returns>
         public async Task<Wallpaper> GetWallpaperFromApi(WallpaperSource source)
         {
-            string json = await FetchJsonFromApi(source);
-
-            switch (source)
+            using (LogContext.PushProperty("Module", nameof(WallpaperService)))
             {
-                case WallpaperSource.SpotlightDesktop:
-                    return ParseSpotlight(json, true);
-                case WallpaperSource.SpotlightLockScreen:
-                    return ParseSpotlight(json, false);
-                default:
+                string json = await FetchJsonFromApi(source);
+                if (!string.IsNullOrEmpty(json))
+                {
+                    Log.Debug("Fetched wallpaper JSON from {Source}: {Json}", source.ToString(), json);
+                }
+                else
+                {
+                    Log.Error("Wallpaper JSON is empty or null for source {Source}", source.ToString());
                     return new Wallpaper("", "", "", "");
+                }
+
+                if (source == WallpaperSource.Spotlight)
+                {
+                    if (spotlightResolution == SpotlightResolution.Desktop_3840x2160)
+                        return ParseSpotlight(json, true);
+                    else
+                        return ParseSpotlight(json, false);
+                }
+                else
+                {
+                    return ParseBingDaily(json);
+                }
             }
         }
 
@@ -110,48 +284,75 @@ namespace SpotlightGallery.Services
         /// <returns>壁纸对象</returns>
         private Wallpaper ParseSpotlight(string json, bool isDesktop)
         {
-            var spotlightResponse = JsonSerializer.Deserialize<SpotlightResponse>(json);
-
-            if (spotlightResponse?.BatchResponse?.Items != null)
+            using (LogContext.PushProperty("Module", nameof(WallpaperService)))
             {
-                foreach (var item in spotlightResponse.BatchResponse.Items)
+                var spotlightResponse = JsonSerializer.Deserialize<SpotlightResponse>(json);
+
+                if (spotlightResponse?.BatchResponse?.Items != null)
                 {
-                    if (!string.IsNullOrEmpty(item.ItemJson))
+                    foreach (var item in spotlightResponse.BatchResponse.Items)
                     {
-                        if (isDesktop)
+                        if (!string.IsNullOrEmpty(item.ItemJson))
                         {
-                            var itemContent = JsonSerializer.Deserialize<SpotlightDesktopItemContent>(item.ItemJson);
-                            if (itemContent?.Ad != null)
+                            if (isDesktop)
                             {
-                                var ad = itemContent.Ad;
-                                string description = ad.GetDescription()?.Split("\r\n")[0] ?? "";
-                                return new Wallpaper(
-                                    ad.GetTitle(),
-                                    description,
-                                    ad.GetCopyright(),
-                                    ad.GetImageUrl()
-                                );
+                                var itemContent = JsonSerializer.Deserialize<SpotlightDesktopItemContent>(item.ItemJson);
+                                if (itemContent?.Ad != null)
+                                {
+                                    var ad = itemContent.Ad;
+                                    string description = ad.GetDescription()?.Split("\r\n")[0] ?? "";
+                                    return new Wallpaper(
+                                        ad.GetTitle(),
+                                        description,
+                                        ad.GetCopyright(),
+                                        ad.GetImageUrl()
+                                    );
+                                }
                             }
-                        }
-                        else
-                        {
-                            var itemContent = JsonSerializer.Deserialize<SpotlightLockscreenItemContent>(item.ItemJson);
-                            if (itemContent?.Ad != null)
+                            else
                             {
-                                var ad = itemContent.Ad;
-                                string description = ad.GetDescription()?.Split("\r\n")[0] ?? "";
-                                return new Wallpaper(
-                                    ad.GetTitle(),
-                                    description,
-                                    ad.GetCopyright(),
-                                    ad.GetImageUrl()
-                                );
+                                var itemContent = JsonSerializer.Deserialize<SpotlightLockscreenItemContent>(item.ItemJson);
+                                if (itemContent?.Ad != null)
+                                {
+                                    var ad = itemContent.Ad;
+                                    string description = ad.GetDescription()?.Split("\r\n")[0] ?? "";
+                                    return new Wallpaper(
+                                        ad.GetTitle(),
+                                        description,
+                                        ad.GetCopyright(),
+                                        ad.GetImageUrl()
+                                    );
+                                }
                             }
                         }
                     }
+                    Log.Error("No valid item found in Spotlight JSON response.");
                 }
+                Log.Error("No valid items found in Spotlight JSON response.");
+
+                return new Wallpaper("", "", "", "");
             }
-            return new Wallpaper("", "", "", "");
+        }
+
+        private Wallpaper ParseBingDaily(string json)
+        {
+            using (LogContext.PushProperty("Module", nameof(WallpaperService)))
+            {
+                var bingResponse = JsonSerializer.Deserialize<BingDailyResponse>(json);
+
+                if (bingResponse?.Images.Count > 0 && bingResponse?.Images != null)
+                {
+                    var image = bingResponse.Images[0];
+                    return new Wallpaper(
+                        image.Headline,
+                        image.Title,
+                        image.Copyright,
+                        image.Url.Replace("UHD", bingResolution.ToResolutionString())
+                    );
+                }
+                Log.Error("No valid images found in Bing Daily JSON response.");
+                return new Wallpaper("", "", "", "");
+            }
         }
 
         /// <summary>
@@ -159,35 +360,53 @@ namespace SpotlightGallery.Services
         /// </summary>
         public async Task<Wallpaper> DownloadWallpaperAsync()
         {
-            Wallpaper wallpaper = await GetWallpaperFromApi(WallpaperSource.SpotlightDesktop);
-
-            string wallpaperPath = Path.Combine(dataDirectory, $"{wallpaper.title}.jpg");
-
-            if (File.Exists(wallpaperPath))
+            using (LogContext.PushProperty("Module", nameof(WallpaperService)))
             {
-                return RetrieveWallpaperMetadata(wallpaperPath);
-            }
+                Wallpaper wallpaper = await GetWallpaperFromApi(currentSource);
 
-            using (var httpClient = new HttpClient())
-            {
-                // 下载壁纸图片
-                HttpResponseMessage imageResponse = await httpClient.GetAsync(wallpaper.url);
-                byte[] imageData = await imageResponse.Content.ReadAsByteArrayAsync();
-
-                if (!File.Exists(dataDirectory))
+                string resolutionSuffix = currentSource switch
                 {
-                    Directory.CreateDirectory(dataDirectory);
+                    WallpaperSource.Spotlight => spotlightResolution.ToResolutionString(),
+                    WallpaperSource.BingDaily => bingResolution.ToResolutionString(),
+                    _ => ""
+                };
+
+                string safeTitle = wallpaper.title;
+                foreach (char c in Path.GetInvalidFileNameChars())
+                {
+                    safeTitle = safeTitle.Replace(c, '_');
+                }
+                string wallpaperPath = Path.Combine(dataDirectory, $"{safeTitle}_{resolutionSuffix}.jpg");
+
+                if (File.Exists(wallpaperPath))
+                {
+                    Log.Debug("Wallpaper already exists at {WallpaperPath}, retrieving metadata.", wallpaperPath);
+                    return RetrieveWallpaperMetadata(wallpaperPath);
                 }
 
-                // 将壁纸保存到本地
-                File.WriteAllBytes(wallpaperPath, imageData);
+                using (var httpClient = new HttpClient())
+                {
+                    httpClient.Timeout = TimeSpan.FromSeconds(15);
+                    // 下载壁纸图片
+                    HttpResponseMessage imageResponse = await httpClient.GetAsync(wallpaper.url);
+                    byte[] imageData = await imageResponse.Content.ReadAsByteArrayAsync();
+
+                    if (!File.Exists(dataDirectory))
+                    {
+                        Directory.CreateDirectory(dataDirectory);
+                    }
+
+                    // 将壁纸保存到本地
+                    File.WriteAllBytes(wallpaperPath, imageData);
+                    Log.Information("Wallpaper saved to {WallpaperPath}", wallpaperPath);
+                }
+
+                wallpaper.path = wallpaperPath;
+
+                SaveWallpaperMetadata(wallpaper);
+
+                return wallpaper;
             }
-
-            wallpaper.path = wallpaperPath;
-
-            SaveWallpaperMetadata(wallpaper);
-
-            return wallpaper;
         }
 
         /// <summary>
@@ -196,30 +415,33 @@ namespace SpotlightGallery.Services
         /// <returns>当前系统设置的壁纸对象</returns>
         public Wallpaper GetCurrentWallpaper()
         {
-            try
+            using (LogContext.PushProperty("Module", nameof(WallpaperService)))
             {
-                RegistryKey key = Registry.CurrentUser.OpenSubKey(@"Control Panel\Desktop", false);
-
-                if (key == null)
+                try
                 {
-                    System.Diagnostics.Debug.WriteLine("无法打开桌面设置注册表项");
+                    RegistryKey key = Registry.CurrentUser.OpenSubKey(@"Control Panel\Desktop", false);
+
+                    if (key == null)
+                    {
+                        Log.Error("Unable to open desktop settings registry key: {RegistryKeyPath}", @"HKEY_CURRENT_USER\Control Panel\Desktop");
+                        return new Wallpaper("", "", "", "");
+                    }
+
+                    string wallpaperPath = key.GetValue("wallpaper") as string;
+
+                    if (string.IsNullOrEmpty(wallpaperPath) || !File.Exists(wallpaperPath))
+                    {
+                        Log.Error("Current wallpaper path is invalid or does not exist: {WallpaperPath}", wallpaperPath);
+                        return new Wallpaper("", "", "", "");
+                    }
+
+                    return RetrieveWallpaperMetadata(wallpaperPath);
+                }
+                catch (Exception ex)
+                {
+                    Log.Error(ex, "Error retrieving current wallpaper: {Message}", ex.Message);
                     return new Wallpaper("", "", "", "");
                 }
-
-                string wallpaperPath = key.GetValue("wallpaper") as string;
-
-                if (string.IsNullOrEmpty(wallpaperPath) || !File.Exists(wallpaperPath))
-                {
-                    System.Diagnostics.Debug.WriteLine("当前壁纸路径无效或不存在");
-                    return new Wallpaper("", "", "", "");
-                }
-
-                return RetrieveWallpaperMetadata(wallpaperPath);
-            }
-            catch (Exception ex)
-            {
-                System.Diagnostics.Debug.WriteLine($"获取当前壁纸时出错: {ex.Message}");
-                return new Wallpaper("", "", "", "");
             }
         }
 
@@ -230,22 +452,31 @@ namespace SpotlightGallery.Services
         /// <returns>是否设置成功</returns>
         public async Task<bool> SetWallpaperAsync(string wallpaperPath)
         {
-            if (!File.Exists(wallpaperPath))
+            using (LogContext.PushProperty("Module", nameof(WallpaperService)))
             {
-                System.Diagnostics.Debug.WriteLine($"壁纸文件不存在: {wallpaperPath}");
-                return false;
-            }
+                if (!File.Exists(wallpaperPath))
+                {
+                    Log.Error("Wallpaper file does not exist: {WallpaperPath}", wallpaperPath);
+                    return false;
+                }
 
-            if (!UserProfilePersonalizationSettings.IsSupported())
-            {
-                System.Diagnostics.Debug.WriteLine("当前系统不支持设置壁纸。");
-                return false;
-            }
+                if (!UserProfilePersonalizationSettings.IsSupported())
+                {
+                    Log.Error("Current system does not support setting wallpaper.");
+                    return false;
+                }
 
-            var file = await StorageFile.GetFileFromPathAsync(wallpaperPath);
-            UserProfilePersonalizationSettings profileSettings = UserProfilePersonalizationSettings.Current;
-            bool result = await profileSettings.TrySetWallpaperImageAsync(file);
-            return result;
+                var file = await StorageFile.GetFileFromPathAsync(wallpaperPath);
+                UserProfilePersonalizationSettings profileSettings = UserProfilePersonalizationSettings.Current;
+                bool result = await profileSettings.TrySetWallpaperImageAsync(file);
+
+                if (result)
+                {
+                    SaveWallpaperToAutoSaveDirectory(wallpaperPath);
+                }
+
+                return result;
+            }
         }
 
         /// <summary>
@@ -264,6 +495,7 @@ namespace SpotlightGallery.Services
             string json = File.ReadAllText(metadataPath);
             var options = new JsonSerializerOptions { WriteIndented = true };
             List<Wallpaper> metadata = JsonSerializer.Deserialize<List<Wallpaper>>(json, options) ?? new List<Wallpaper>();
+            metadata.RemoveAll(w => w.title == wallpaper.title && w.description == wallpaper.description);
             metadata.Add(wallpaper);
             string newJson = JsonSerializer.Serialize(metadata, options);
             File.WriteAllText(metadataPath, newJson);
@@ -285,7 +517,7 @@ namespace SpotlightGallery.Services
                 };
             }
 
-            string title = Path.GetFileNameWithoutExtension(wallpaperPath);
+            string title = Path.GetFileNameWithoutExtension(wallpaperPath).Split('_')[0];
 
             string json = File.ReadAllText(metadataPath);
             var wallpapers = JsonSerializer.Deserialize<List<Wallpaper>>(json) ?? new List<Wallpaper>();
@@ -294,6 +526,70 @@ namespace SpotlightGallery.Services
             {
                 path = wallpaperPath
             };
+        }
+
+        private void SaveWallpaperToAutoSaveDirectory(string wallpaperPath)
+        {
+            using (LogContext.PushProperty("Module", nameof(WallpaperService)))
+            {
+                if (!IsAutoSaveEnabled)
+                {
+                    return;
+                }
+
+                if (string.IsNullOrEmpty(autoSaveDirectory) || !Directory.Exists(autoSaveDirectory))
+                {
+                    Log.Error("Auto save directory is not set or does not exist: {AutoSaveDirectory}", autoSaveDirectory);
+                    Helpers.ToastHelper.ShowToast("自动保存失败", "自动保存目录未设置或不存在。");
+                    return;
+                }
+
+                string fileName = Path.GetFileName(wallpaperPath);
+                string filePath = Path.Combine(autoSaveDirectory, fileName);
+                
+                if (File.Exists(filePath))
+                {
+                    Log.Information("Wallpaper already exists in auto save directory: {FilePath}", filePath);
+                    return;
+                }
+
+                try
+                {
+                    byte[] fileData = File.ReadAllBytes(wallpaperPath);
+                    File.WriteAllBytes(filePath, fileData);
+
+                    Log.Information("Wallpaper saved to auto save directory: {FilePath}", filePath);
+                }
+                catch (Exception ex)
+                {
+                    Log.Error(ex, "Failed to save wallpaper to auto save directory: {Message}", ex.Message);
+                    Helpers.ToastHelper.ShowToast("自动保存失败", "保存壁纸时发生错误：" + ex.Message);
+                }
+            }
+        }
+
+        public void CleanupOldWallpapers()
+        {
+            using (LogContext.PushProperty("Module", nameof(WallpaperService)))
+            {
+                try
+                {
+                    var currentWallpaperPath = GetCurrentWallpaper().path;
+                    var files = Directory.GetFiles(dataDirectory, "*.jpg");
+                    foreach (var file in files)
+                    {
+                        if (!string.Equals(file, currentWallpaperPath, StringComparison.OrdinalIgnoreCase))
+                        {
+                            File.Delete(file);
+                            Log.Information("Deleted old wallpaper file: {FilePath}", file);
+                        }
+                    }
+                }
+                catch (Exception ex)
+                {
+                    Log.Warning(ex, "Failed to cleanup old wallpapers: {Message}", ex.Message);
+                }
+            }
         }
     }
 }

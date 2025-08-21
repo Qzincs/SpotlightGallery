@@ -2,6 +2,8 @@
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Media.Imaging;
+using Serilog;
+using Serilog.Context;
 using SpotlightGallery.Models;
 using SpotlightGallery.Services;
 using System;
@@ -20,7 +22,7 @@ namespace SpotlightGallery.ViewModels
 {
     public class HomePageViewModel : ViewModelBase
     {
-        private readonly IWallpaperService wallpaperService;
+        private readonly IWallpaperService wallpaperService = ServiceLocator.WallpaperService;
         private Wallpaper wallpaper;
 
         private string wallpaperTitle;
@@ -108,9 +110,8 @@ namespace SpotlightGallery.ViewModels
         public ICommand ApplyWallpaperCommand { get; }
         public ICommand SaveWallpaperCommand { get; }
 
-        public HomePageViewModel(IWallpaperService wallpaperService)
+        public HomePageViewModel()
         {
-            this.wallpaperService = wallpaperService ?? throw new ArgumentNullException(nameof(wallpaperService));
             NextWallpaperCommand = new RelayCommand(async () => await LoadNextWallpaperAsync(), () => !IsLoading);
             ApplyWallpaperCommand = new RelayCommand(ApplyWallpaperAsync, () => !IsLoading && wallpaper != null && !string.IsNullOrEmpty(wallpaper.path));
             SaveWallpaperCommand = new RelayCommand(SaveWallpaperAsync, () => !IsLoading && wallpaper != null && !string.IsNullOrEmpty(wallpaper.path));
@@ -123,36 +124,39 @@ namespace SpotlightGallery.ViewModels
         /// </summary>
         public async Task LoadNextWallpaperAsync()
         {
-            if (IsLoading) return;
-
-            try
+            using (LogContext.PushProperty("Module", nameof(HomePageViewModel)))
             {
-                IsLoading = true;
-                UpdateCommandsState();
+                if (IsLoading) return;
 
-                HideInfoBar();
-
-                var wallpaper = await wallpaperService.DownloadWallpaperAsync();
-
-                if (wallpaper != null && !string.IsNullOrEmpty(wallpaper.path))
+                try
                 {
-                    Wallpaper = wallpaper;
+                    IsLoading = true;
+                    UpdateCommandsState();
+
+                    HideInfoBar();
+
+                    var wallpaper = await wallpaperService.DownloadWallpaperAsync();
+
+                    if (wallpaper != null && !string.IsNullOrEmpty(wallpaper.path))
+                    {
+                        Wallpaper = wallpaper;
+                    }
+                    else
+                    {
+                        Log.Error("Failed to load wallpaper. Wallpaper is null or path is empty.");
+                        ShowInfoBar("获取壁纸失败", InfoBarSeverity.Error);
+                    }
                 }
-                else
+                catch (Exception ex)
                 {
-                    ShowInfoBar("获取壁纸失败", InfoBarSeverity.Error);
-                    System.Diagnostics.Debug.WriteLine("下载壁纸失败或路径无效");
+                    Log.Error(ex, "LoadNextWallpaperAsync Exception: {Message}", ex.Message);
+                    ShowInfoBar($"加载壁纸失败: {ex.Message}", InfoBarSeverity.Error);
                 }
-            }
-            catch (Exception ex)
-            {
-                ShowInfoBar($"加载壁纸失败: {ex.Message}", InfoBarSeverity.Error);
-                System.Diagnostics.Debug.WriteLine($"加载壁纸失败: {ex.Message}");
-            }
-            finally
-            {
-                IsLoading = false;
-                UpdateCommandsState();
+                finally
+                {
+                    IsLoading = false;
+                    UpdateCommandsState();
+                }
             }
         }
 
@@ -168,17 +172,20 @@ namespace SpotlightGallery.ViewModels
         /// </summary>
         public async void ApplyWallpaperAsync()
         {
-            bool result = await wallpaperService.SetWallpaperAsync(wallpaper.path);
+            using (LogContext.PushProperty("Module", nameof(HomePageViewModel)))
+            {
+                bool result = await wallpaperService.SetWallpaperAsync(wallpaper.path);
 
-            if (result)
-            {
-                ShowInfoBar("壁纸设置成功", InfoBarSeverity.Success);
-                System.Diagnostics.Debug.WriteLine("壁纸设置成功");
-            }
-            else
-            {
-                ShowInfoBar("壁纸设置失败", InfoBarSeverity.Error);
-                System.Diagnostics.Debug.WriteLine("壁纸设置失败");
+                if (result)
+                {
+                    Log.Information("Wallpaper applied successfully: {WallpaperPath}", wallpaper.path);
+                    ShowInfoBar("壁纸设置成功", InfoBarSeverity.Success);
+                }
+                else
+                {
+                    Log.Warning("Failed to apply wallpaper: {WallpaperPath}", wallpaper.path);
+                    ShowInfoBar("壁纸设置失败", InfoBarSeverity.Error);
+                }
             }
         }
 

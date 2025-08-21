@@ -7,7 +7,8 @@
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     xmlns:toolkit="using:CommunityToolkit.WinUI.Controls"
-    mc:Ignorable="d">
+    mc:Ignorable="d"
+    NavigationCacheMode="Enabled">
     <Page.Resources>
         <!--  These styles can be referenced to create a consistent SettingsPage layout  -->
         <!--  Reference SettingsExpander Page in Windows Community Toolkit Gallery for the full sample  -->
@@ -44,6 +45,113 @@
             VerticalScrollMode="Auto">
             <Border>
                 <StackPanel Spacing="{StaticResource SettingsCardSpacing}">
+                    <TextBlock Style="{StaticResource SettingsSectionHeaderTextBlockStyle}"
+                               x:Uid="Features"/>
+                    <toolkit:SettingsCard x:Uid="WallpaperSource">
+                        <toolkit:SettingsCard.HeaderIcon>
+                            <FontIcon Glyph="&#xE8B9;" />
+                        </toolkit:SettingsCard.HeaderIcon>
+                        <ComboBox SelectedIndex="{x:Bind ViewModel.SourceIndex, Mode=TwoWay}">
+                            <ComboBoxItem x:Uid="WindowsSpotlight"/>
+                            <ComboBoxItem x:Uid="Bing"/>
+                        </ComboBox>
+                    </toolkit:SettingsCard>
+                    <toolkit:SettingsCard x:Uid="ImageResolution">
+                        <toolkit:SettingsCard.HeaderIcon>
+                            <FontIcon Glyph="&#xE799;" />
+                        </toolkit:SettingsCard.HeaderIcon>
+                        <ComboBox 
+                            ItemsSource="{x:Bind ViewModel.ResolutionOptions, Mode=OneWay}"
+                            SelectedIndex="{x:Bind ViewModel.ResolutionIndex, Mode=TwoWay}" />
+                    </toolkit:SettingsCard>
+                    <toolkit:SettingsCard x:Uid="WallpaperLocale">
+                        <toolkit:SettingsCard.HeaderIcon>
+                            <FontIcon Glyph="&#xE909;" />
+                        </toolkit:SettingsCard.HeaderIcon>
+                        <ComboBox SelectedIndex="{x:Bind ViewModel.WallpaperLocaleIndex, Mode=TwoWay}">
+                            <ComboBoxItem x:Uid="LocaleOption_Australia"/>
+                            <ComboBoxItem x:Uid="LocaleOption_Brazil"/>
+                            <ComboBoxItem x:Uid="LocaleOption_Canada"/>
+                            <ComboBoxItem x:Uid="LocaleOption_China"/>
+                            <ComboBoxItem x:Uid="LocaleOption_France"/>
+                            <ComboBoxItem x:Uid="LocaleOption_Germany"/>
+                            <ComboBoxItem x:Uid="LocaleOption_India"/>
+                            <ComboBoxItem x:Uid="LocaleOption_Italy"/>
+                            <ComboBoxItem x:Uid="LocaleOption_Japan"/>
+                            <ComboBoxItem x:Uid="LocaleOption_NewZealand"/>
+                            <ComboBoxItem x:Uid="LocaleOption_Spain"/>
+                            <ComboBoxItem x:Uid="LocaleOption_UK"/>
+                            <ComboBoxItem x:Uid="LocaleOption_US"/>
+                        </ComboBox>
+                    </toolkit:SettingsCard>
+                    <toolkit:SettingsExpander x:Uid="AutoUpdate">
+                        <toolkit:SettingsExpander.HeaderIcon>
+                            <FontIcon Glyph="&#xE895;" />
+                        </toolkit:SettingsExpander.HeaderIcon>
+                        <ToggleSwitch IsOn="{x:Bind ViewModel.IsAutoUpdateEnabled, Mode=TwoWay}" />
+                        <toolkit:SettingsExpander.Items>
+                            <toolkit:SettingsCard x:Uid="UpdateMode">
+                                <ComboBox SelectedIndex="{x:Bind ViewModel.UpdateModeIndex, Mode=TwoWay}">
+                                    <ComboBoxItem x:Uid="Daily"/>
+                                    <ComboBoxItem x:Uid="AtSpecificTime"/>
+                                </ComboBox>
+                            </toolkit:SettingsCard>
+                            <toolkit:SettingsCard x:Uid="UpdateTime"
+                                                  IsEnabled="{Binding IsUpdateTimeEnabled}">
+                                <TimePicker SelectedTime="{x:Bind ViewModel.UpdateTime, Mode=TwoWay}"/>
+                            </toolkit:SettingsCard>
+                        </toolkit:SettingsExpander.Items>
+                    </toolkit:SettingsExpander>
+                    <toolkit:SettingsExpander x:Uid="AutoSave">
+                        <toolkit:SettingsExpander.HeaderIcon>
+                            <FontIcon Glyph="&#xE74E;" />
+                        </toolkit:SettingsExpander.HeaderIcon>
+                        <ToggleSwitch IsOn="{x:Bind ViewModel.IsAutoSaveEnabled, Mode=TwoWay}"/>
+                        <toolkit:SettingsExpander.Items>
+                            <toolkit:SettingsCard Header="{Binding AutoSaveDirectory}">
+                                <Grid>
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="*"/>
+                                        <ColumnDefinition Width="*"/>
+                                    </Grid.ColumnDefinitions>
+                                    <Button Grid.Column="0"
+                                            Margin="0,0,8,0"
+                                            x:Uid="OpenFolder"
+                                            Command="{x:Bind ViewModel.OpenAutoSaveDirectoryCommand}"
+                                            />
+                                    <Button Grid.Column="1"
+                                            x:Uid="Change"
+                                            Command="{x:Bind ViewModel.ChangeAutoSaveDirectoryCommand}"/>
+                                </Grid>
+                            </toolkit:SettingsCard>
+                        </toolkit:SettingsExpander.Items>
+                    </toolkit:SettingsExpander>
+
+                    <TextBlock Style="{StaticResource SettingsSectionHeaderTextBlockStyle}"
+                               x:Uid="Appearance"/>
+                    <toolkit:SettingsCard x:Uid="AppTheme">
+                        <toolkit:SettingsCard.HeaderIcon>
+                            <FontIcon Glyph="&#xE790;"/>
+                        </toolkit:SettingsCard.HeaderIcon>
+                        <ComboBox
+                            x:Name="themeMode" SelectedIndex="{x:Bind ViewModel.AppThemeIndex, Mode=TwoWay}">
+                            <ComboBoxItem x:Uid="LightTheme"
+                                          Tag="Light"/>
+                            <ComboBoxItem x:Uid="DarkTheme"
+                                          Tag="Dark"/>
+                            <ComboBoxItem x:Uid="UseSystemSetting"
+                                          Tag="System"/>
+                        </ComboBox>
+                    </toolkit:SettingsCard>
+                    <toolkit:SettingsCard x:Uid="DisplayLanguage">
+                        <toolkit:SettingsCard.HeaderIcon>
+                            <FontIcon Glyph="&#xF2B7;"/>
+                        </toolkit:SettingsCard.HeaderIcon>
+                        <ComboBox SelectedIndex="{x:Bind ViewModel.DisplayLanguageIndex, Mode=TwoWay}">
+                            <ComboBoxItem x:Uid="Chinese"/>
+                            <ComboBoxItem x:Uid="English"/>
+                        </ComboBox>
+                    </toolkit:SettingsCard>
 
                     <TextBlock Style="{StaticResource SettingsSectionHeaderTextBlockStyle}"
                                x:Uid="About"/>
@@ -53,7 +161,8 @@
                             <ImageIcon Source="/Assets/AppLogo.png" />
                         </toolkit:SettingsCard.HeaderIcon>
                         <TextBlock IsTextSelectionEnabled="True"
-                                   Foreground="{ThemeResource TextFillColorSecondaryBrush}" Text="0.1.0"/>
+                                   Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                                   Text="{x:Bind ViewModel.AppVersion, Mode=OneWay}"/>
                     </toolkit:SettingsCard>
                     <toolkit:SettingsCard x:Uid="OpenSource">
                         <toolkit:SettingsCard.HeaderIcon>
@@ -75,6 +184,12 @@
                              x:Uid="Feedback"
                              NavigateUri="https://github.com/Qzincs/SpotlightGallery/issues"/>
                         </Grid>
+                    </toolkit:SettingsCard>
+                    <toolkit:SettingsCard x:Uid="DebugLog">
+                        <toolkit:SettingsCard.HeaderIcon>
+                            <FontIcon Glyph="&#xEBE8;"/>
+                        </toolkit:SettingsCard.HeaderIcon>
+                        <ToggleSwitch IsOn="{x:Bind ViewModel.IsDebugLogEnabled, Mode=TwoWay}" />
                     </toolkit:SettingsCard>
                     <toolkit:SettingsCard x:Uid="CopyrightNotice">
                         <toolkit:SettingsCard.HeaderIcon>
