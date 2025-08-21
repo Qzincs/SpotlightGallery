@@ -25,6 +25,15 @@ namespace SpotlightGallery.ViewModels
 
         private bool isInitialized = false;
 
+        public string AppVersion
+        {
+            get
+            {
+                var v = Windows.ApplicationModel.Package.Current.Id.Version;
+                return $"{v.Major}.{v.Minor}.{v.Build}";
+            }
+        }
+
         private int appThemeIndex;
         /// <summary>
         /// 0 - 浅色, 1 - 深色, 2 - 系统默认
@@ -417,7 +426,7 @@ namespace SpotlightGallery.ViewModels
             ResolutionIndex = SettingsHelper.GetSetting("Resolution", 0);
             UpdateResolutionOptions();
             // load wallpaper locale settings
-            WallpaperLocaleIndex = SettingsHelper.GetSetting("WallpaperLocale", (int)WallpaperLocale.en_US); // default to en-US
+            WallpaperLocaleIndex = SettingsHelper.GetSetting("WallpaperLocale", (int)WallpaperLocale.zh_CN); // default to zh-CN
             // load auto update settings
             IsAutoUpdateEnabled = SettingsHelper.GetSetting("AutoUpdate", false);
             UpdateModeIndex = SettingsHelper.GetSetting("UpdateMode", 0);
