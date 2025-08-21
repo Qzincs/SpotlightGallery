@@ -25,6 +25,15 @@ namespace SpotlightGallery.ViewModels
 
         private bool isInitialized = false;
 
+        public string AppVersion
+        {
+            get
+            {
+                var v = Windows.ApplicationModel.Package.Current.Id.Version;
+                return $"{v.Major}.{v.Minor}.{v.Build}";
+            }
+        }
+
         private int appThemeIndex;
         /// <summary>
         /// 0 - 浅色, 1 - 深色, 2 - 系统默认

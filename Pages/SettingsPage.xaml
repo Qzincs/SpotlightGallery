@@ -161,7 +161,8 @@
                             <ImageIcon Source="/Assets/AppLogo.png" />
                         </toolkit:SettingsCard.HeaderIcon>
                         <TextBlock IsTextSelectionEnabled="True"
-                                   Foreground="{ThemeResource TextFillColorSecondaryBrush}" Text="0.1.0"/>
+                                   Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                                   Text="{x:Bind ViewModel.AppVersion, Mode=OneWay}"/>
                     </toolkit:SettingsCard>
                     <toolkit:SettingsCard x:Uid="OpenSource">
                         <toolkit:SettingsCard.HeaderIcon>
