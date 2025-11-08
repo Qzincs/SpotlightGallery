@@ -29,7 +29,9 @@ Windows 10 或 Windows 11 (推荐)
 
 ### Microsoft Store
 
-暂未上架
+<a href="https://apps.microsoft.com/detail/9nb71rxt57xz?referrer=appbadge&mode=direct">
+	<img src="https://get.microsoft.com/images/zh-cn%20dark.svg" width="200"/>
+</a>
 
 ### 侧载
 

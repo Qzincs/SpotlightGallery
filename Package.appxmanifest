@@ -9,11 +9,11 @@
   IgnorableNamespaces="uap rescap com">
 
   <Identity
-    Name="9e4113aa-d5d5-4b46-8db7-01c8e1c3d6cb"
-    Publisher="CN=Qzink"
+    Name="Qzink.SpotlightGallery"
+    Publisher="CN=302641E8-B8F7-494F-93CA-ECECC7DAB699"
     Version="1.0.0.0" />
 
-  <mp:PhoneIdentity PhoneProductId="9e4113aa-d5d5-4b46-8db7-01c8e1c3d6cb" PhonePublisherId="00000000-0000-0000-0000-000000000000"/>
+  <mp:PhoneIdentity PhoneProductId="91acebd5-7631-4624-ba8b-372f3302c420" PhonePublisherId="00000000-0000-0000-0000-000000000000"/>
 
   <Properties>
     <DisplayName>SpotlightGallery</DisplayName>
