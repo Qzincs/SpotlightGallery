@@ -1,6 +1,7 @@
 ﻿using Microsoft.Win32;
 using Serilog;
 using Serilog.Context;
+using SpotlightGallery.Helpers;
 using SpotlightGallery.Models;
 using System;
 using System.Collections.Generic;
@@ -544,7 +545,9 @@ namespace SpotlightGallery.Services
                     return;
                 }
 
-                string fileName = Path.GetFileName(wallpaperPath);
+                Wallpaper wallpaper = RetrieveWallpaperMetadata(wallpaperPath);
+                string template = SettingsHelper.GetSetting("FilenameTemplate", "{title}");
+                string fileName = FilenameHelper.GetFormattedFilename(wallpaper, template) + ".jpg";
                 string filePath = Path.Combine(autoSaveDirectory, fileName);
                 
                 if (File.Exists(filePath))

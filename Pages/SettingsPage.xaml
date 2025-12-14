@@ -127,6 +127,13 @@
                         </toolkit:SettingsExpander.Items>
                     </toolkit:SettingsExpander>
 
+                    <toolkit:SettingsCard x:Uid="FilenameTemplate">
+                        <toolkit:SettingsCard.HeaderIcon>
+                            <FontIcon Glyph="&#xE7C3;" />
+                        </toolkit:SettingsCard.HeaderIcon>
+                        <TextBox Text="{x:Bind ViewModel.FilenameTemplate, Mode=TwoWay}" Width="300"/>
+                    </toolkit:SettingsCard>
+
                     <TextBlock Style="{StaticResource SettingsSectionHeaderTextBlockStyle}"
                                x:Uid="Appearance"/>
                     <toolkit:SettingsCard x:Uid="AppTheme">

@@ -332,4 +332,10 @@
   <data name="LanguageChangeDialog_CancelButton" xml:space="preserve">
     <value>Cancel</value>
   </data>
+  <data name="FilenameTemplate.Header" xml:space="preserve">
+    <value>Filename Template</value>
+  </data>
+  <data name="FilenameTemplate.Description" xml:space="preserve">
+    <value>Available placeholders: {title}, {description}, {copyright}, {author}</value>
+  </data>
 </root>

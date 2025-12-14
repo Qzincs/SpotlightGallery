@@ -4,6 +4,7 @@ using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Media.Imaging;
 using Serilog;
 using Serilog.Context;
+using SpotlightGallery.Helpers;
 using SpotlightGallery.Models;
 using SpotlightGallery.Services;
 using System;
@@ -203,7 +204,10 @@ namespace SpotlightGallery.ViewModels
 
             savePicker.SuggestedStartLocation = PickerLocationId.PicturesLibrary;
             savePicker.FileTypeChoices.Add("JPEG 图片", new List<string>() { ".jpg" });
-            savePicker.SuggestedFileName = $"{WallpaperTitle}";
+            
+            string template = SettingsHelper.GetSetting("FilenameTemplate", "{title}");
+            string filename = FilenameHelper.GetFormattedFilename(wallpaper, template);
+            savePicker.SuggestedFileName = filename;
 
             StorageFile destinationFile = await savePicker.PickSaveFileAsync();
 
