@@ -356,4 +356,7 @@
   <data name="InfoBar_SaveWallpaperError" xml:space="preserve">
     <value>Error saving wallpaper</value>
   </data>
+  <data name="InfoBar_BingDailyLimit" xml:space="preserve">
+    <value>Bing Daily Wallpaper only provides one image per day.</value>
+  </data>
 </root>

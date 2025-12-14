@@ -8,6 +8,9 @@
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     mc:Ignorable="d"
     NavigationCacheMode="Enabled">
+    <Page.Resources>
+        <SolidColorBrush x:Key="InfoBarInformationalSeverityBackgroundBrush" Color="{ThemeResource SystemChromeMediumLowColor}" />
+    </Page.Resources>
 
     <Grid Margin="16">
         <Grid.RowDefinitions>

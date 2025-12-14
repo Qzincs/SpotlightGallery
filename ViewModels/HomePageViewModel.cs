@@ -132,6 +132,13 @@ namespace SpotlightGallery.ViewModels
             {
                 if (IsLoading) return;
 
+                if (wallpaperService.CurrentSource == WallpaperSource.BingDaily && 
+                    Wallpaper?.url?.Contains("bing") == true)
+                {
+                    ShowInfoBar(ResourceLoader.GetString("InfoBar_BingDailyLimit"), InfoBarSeverity.Informational);
+                    return;
+                }
+
                 try
                 {
                     IsLoading = true;
