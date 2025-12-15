@@ -354,7 +354,4 @@
   <data name="InfoBar_SaveWallpaperError" xml:space="preserve">
     <value>保存壁纸时出错</value>
   </data>
-  <data name="InfoBar_BingDailyLimit" xml:space="preserve">
-    <value>Bing 每日一图每天仅提供一张图片。</value>
-  </data>
 </root>
