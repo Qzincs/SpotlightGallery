@@ -412,6 +412,19 @@ namespace SpotlightGallery.ViewModels
             }
         }
 
+        private string filenameTemplate = "{title}";
+        public string FilenameTemplate
+        {
+            get => filenameTemplate;
+            set
+            {
+                if (SetProperty(ref filenameTemplate, value) && isInitialized)
+                {
+                    SettingsHelper.SaveSetting("FilenameTemplate", value);
+                }
+            }
+        }
+
         public SettingsViewModel()
         {
             LoadSettings();
@@ -438,6 +451,8 @@ namespace SpotlightGallery.ViewModels
             DisplayLanguageIndex = SettingsHelper.GetSetting("DisplayLanguage", 0);
             // load debug log settings
             IsDebugLogEnabled = SettingsHelper.GetSetting("DebugLogEnabled", false);
+            // load filename template settings
+            FilenameTemplate = SettingsHelper.GetSetting("FilenameTemplate", "{title}");
         }
     }
 }

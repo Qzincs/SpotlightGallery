@@ -4,6 +4,7 @@ using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Media.Imaging;
 using Serilog;
 using Serilog.Context;
+using SpotlightGallery.Helpers;
 using SpotlightGallery.Models;
 using SpotlightGallery.Services;
 using System;
@@ -23,6 +24,9 @@ namespace SpotlightGallery.ViewModels
     public class HomePageViewModel : ViewModelBase
     {
         private readonly IWallpaperService wallpaperService = ServiceLocator.WallpaperService;
+        private static Windows.ApplicationModel.Resources.ResourceLoader ResourceLoader =>
+            Windows.ApplicationModel.Resources.ResourceLoader.GetForViewIndependentUse();
+
         private Wallpaper wallpaper;
 
         private string wallpaperTitle;
@@ -144,13 +148,13 @@ namespace SpotlightGallery.ViewModels
                     else
                     {
                         Log.Error("Failed to load wallpaper. Wallpaper is null or path is empty.");
-                        ShowInfoBar("获取壁纸失败", InfoBarSeverity.Error);
+                        ShowInfoBar(ResourceLoader.GetString("InfoBar_GetWallpaperFailed"), InfoBarSeverity.Error);
                     }
                 }
                 catch (Exception ex)
                 {
                     Log.Error(ex, "LoadNextWallpaperAsync Exception: {Message}", ex.Message);
-                    ShowInfoBar($"加载壁纸失败: {ex.Message}", InfoBarSeverity.Error);
+                    ShowInfoBar(string.Format(ResourceLoader.GetString("InfoBar_LoadWallpaperFailed"), ex.Message), InfoBarSeverity.Error);
                 }
                 finally
                 {
@@ -179,12 +183,12 @@ namespace SpotlightGallery.ViewModels
                 if (result)
                 {
                     Log.Information("Wallpaper applied successfully: {WallpaperPath}", wallpaper.path);
-                    ShowInfoBar("壁纸设置成功", InfoBarSeverity.Success);
+                    ShowInfoBar(ResourceLoader.GetString("InfoBar_SetWallpaperSuccess"), InfoBarSeverity.Success);
                 }
                 else
                 {
                     Log.Warning("Failed to apply wallpaper: {WallpaperPath}", wallpaper.path);
-                    ShowInfoBar("壁纸设置失败", InfoBarSeverity.Error);
+                    ShowInfoBar(ResourceLoader.GetString("InfoBar_SetWallpaperFailed"), InfoBarSeverity.Error);
                 }
             }
         }
@@ -203,7 +207,10 @@ namespace SpotlightGallery.ViewModels
 
             savePicker.SuggestedStartLocation = PickerLocationId.PicturesLibrary;
             savePicker.FileTypeChoices.Add("JPEG 图片", new List<string>() { ".jpg" });
-            savePicker.SuggestedFileName = $"{WallpaperTitle}";
+            
+            string template = SettingsHelper.GetSetting("FilenameTemplate", "{title}");
+            string filename = FilenameHelper.GetFormattedFilename(wallpaper, template);
+            savePicker.SuggestedFileName = filename;
 
             StorageFile destinationFile = await savePicker.PickSaveFileAsync();
 
@@ -219,11 +226,11 @@ namespace SpotlightGallery.ViewModels
 
                 if (status == FileUpdateStatus.Complete)
                 {
-                    ShowInfoBar("壁纸已成功保存", InfoBarSeverity.Success);
+                    ShowInfoBar(ResourceLoader.GetString("InfoBar_SaveWallpaperSuccess"), InfoBarSeverity.Success);
                 }
                 else
                 {
-                    ShowInfoBar("保存壁纸时出错", InfoBarSeverity.Error);
+                    ShowInfoBar(ResourceLoader.GetString("InfoBar_SaveWallpaperError"), InfoBarSeverity.Error);
                 }
             }
         }

@@ -332,4 +332,28 @@
   <data name="LanguageChangeDialog_CancelButton" xml:space="preserve">
     <value>Cancel</value>
   </data>
+  <data name="FilenameTemplate.Header" xml:space="preserve">
+    <value>Filename Template</value>
+  </data>
+  <data name="FilenameTemplate.Description" xml:space="preserve">
+    <value>Available placeholders: {title}, {description}, {copyright}, {author}</value>
+  </data>
+  <data name="InfoBar_GetWallpaperFailed" xml:space="preserve">
+    <value>Failed to get wallpaper</value>
+  </data>
+  <data name="InfoBar_LoadWallpaperFailed" xml:space="preserve">
+    <value>Failed to load wallpaper: {0}</value>
+  </data>
+  <data name="InfoBar_SetWallpaperSuccess" xml:space="preserve">
+    <value>Wallpaper set successfully</value>
+  </data>
+  <data name="InfoBar_SetWallpaperFailed" xml:space="preserve">
+    <value>Failed to set wallpaper</value>
+  </data>
+  <data name="InfoBar_SaveWallpaperSuccess" xml:space="preserve">
+    <value>Wallpaper saved successfully</value>
+  </data>
+  <data name="InfoBar_SaveWallpaperError" xml:space="preserve">
+    <value>Error saving wallpaper</value>
+  </data>
 </root>
